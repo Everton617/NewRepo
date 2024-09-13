@@ -48,5 +48,5 @@ async function handleDELETE(req: NextApiRequest, res: NextApiResponse) {
 
     await removeProductFromCategorySubcategory(user.team.id, category_subcategory_product_id);
 
-    return res.status(201).json({message: `product successfully removed from '${categorySubcategory.category.name}' -> '${categorySubcategory.subcategory.name}'`})
+    return res.status(201).json({message: `product successfully removed from `})
 }
