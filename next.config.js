@@ -31,10 +31,7 @@ const nextConfig = {
         source: '/.well-known/saml-configuration',
         destination: '/well-known/saml-configuration',
       },
-      {  
-        source: '/feedback/((?!general).*)',  
-        destination: '/feedback/general',  
-      },  
+      
     ];
   },
   async headers() {
