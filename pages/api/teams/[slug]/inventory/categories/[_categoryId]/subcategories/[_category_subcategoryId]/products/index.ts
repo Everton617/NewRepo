@@ -64,5 +64,5 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
         category_subcategory_id
     });
 
-    return res.status(201).json({message: `product successfully added into `});
+    return res.status(201).json({message: `product successfully added  `});
 }
