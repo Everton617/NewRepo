@@ -1,0 +1,173 @@
+runConfig:  
+  minInstances: 2  
+  maxInstances: 100  
+  concurrency: 100  
+  cpu: 2  
+  memoryMiB: 8192  
+
+env:
+-   variable: NEXT_PUBLIC_ROUTE_CPF
+    value: https://login.qu1ck.com.br/
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: NEXTAUTH_URL
+    value: https://qu1ckapp--qu1ck-b13ca.us-central1.hosted.app/
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: NEXTAUTH_SECRET
+    secret: rZTFtfNuSMajLnfFrWT2PZ3lX8WZv7W/Xs2H8hkEY6g=
+
+    variable: NEXT_PUBLIC_APP_URL
+    value: https://qu1ckapp--qu1ck-b13ca.us-central1.hosted.app/
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: SVIX_URL
+    value: https://api.eu.svix.com
+    availability:
+    -   BUILD
+    -   RUNTIME
+    
+    variable: HIDE_LANDING_PAGE
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: CONFIRM_EMAIL
+    value: false
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: CONFIRM_EMAIL
+    value: false
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: OTEL_EXPORTER_OTLP_METRICS_PROTOCOL
+    value: grpc
+    availability:
+    -   BUILD
+    -   RUNTIME
+    
+    variable: OTEL_EXPORTER_DEBUG
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: OTEL_PREFIX
+    value: boxyhq.saas
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: NEXT_PUBLIC_TERMS_URL
+    value: '/terms'
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: NEXT_PUBLIC_PRIVACY_URL
+    value: '/privacy'
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: NEXT_PUBLIC_DARK_MODE
+    value: false
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: NEXT_PUBLIC_COMMAND_PALETTE_ACTIVE
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: FEATURE_TEAM_SSO
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+    variable: FEATURE_TEAM_DSYNC
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+    
+      variable: FEATURE_TEAM_AUDIT_LOG
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+      variable: FEATURE_TEAM_WEBHOOK
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+      variable: FEATURE_TEAM_API_KEY
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+      variable: FEATURE_TEAM_DELETION
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+      variable: FEATURE_TEAM_PAYMENTS
+    value: true
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+      variable: NEXTAUTH_SESSION_STRATEGY
+    value: jwt
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+      variable: NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE
+    value: 0.0
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+      variable: MAX_LOGIN_ATTEMPTS
+    value: 5
+    availability:
+    -   BUILD
+    -   RUNTIME
+
+      variable: STRIPE_SECRET_KEY
+   secret: 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
+
+     variable: STRIPE_WEBHOOK_SECRET
+   secret: whsec_JginBUIGCSadDdxB5nSa98odYTag3pP0
+
+     variable: STRIPE_PUBLISHABLE_KEY
+   secret: pk_live_51PK4UzGyZxV2KIFBFFEoAkgRcz1a6kj6fSqWa3Mep7JggiDG7xLN24yjYuTrXsLJxgnA9LD357hKIPJJyVvkGFUb00wTiwDPwl
+
+     variable: EVOLUTION_URL
+   secret: https://apiaec.qu1ckai.com
+
+     variable: EVOLUTION_API_KEY
+   secret: 6c4aaabbdf7d1f0562efef4c2b444ae2
+
+     variable: EVOLUTION_WEBHOOK_URL
+  secret: https://bonekazz.app.n8n.cloud/webhook-test/send-message
+  

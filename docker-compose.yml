@@ -1,0 +1,23 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+      POSTGRES_DB: saas-starter-kit
+    ports:
+      - 5432:5432
+  evo:
+    container_name: evo
+    image: atendai/evolution-api:v1.7.4
+    restart: always
+    ports:
+      - 8080:8080
+      - 80:80
+      - 443:443
+    environment:
+      AUTHENTICATION_API_KEY: salve
+      WEBSOCKET_ENABLED: true
+      WEBSOCKET_GLOBAL_EVENTS: true
