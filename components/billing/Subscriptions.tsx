@@ -16,15 +16,15 @@ const Subscriptions = ({ subscriptions }: SubscriptionsProps) => {
   return (
     <div className="space-y-3">
       <h2 className="card-title text-xl font-medium leading-none tracking-tight">
-        {t('subscriptions')}
+        {t('Assinaturas')}
       </h2>
       <table className="table w-full text-sm border">
-        <thead>
+        <thead className='bg-red-400 text-white'>
           <tr>
             <th>ID</th>
-            <th>{t('plan')}</th>
-            <th>{t('start-date')}</th>
-            <th>{t('end-date')}</th>
+            <th>{t('Plano')}</th>
+            <th>{t('Data de Inscrição')}</th>
+            <th>{t('Válido até')}</th>
           </tr>
         </thead>
         <tbody>

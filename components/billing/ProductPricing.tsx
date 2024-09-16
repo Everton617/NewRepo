@@ -127,7 +127,7 @@ const ProductPricing = ({ plans, subscriptions }: ProductPricingProps) => {
                       disabled
                       className=""
                     >
-                      {t('current')}
+                      {t('Plano atual')}
                     </Button>
                   ) : (
                     <PaymentButton
