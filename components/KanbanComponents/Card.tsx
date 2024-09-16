@@ -55,7 +55,7 @@ const Card: FC<CardType> = ({ id,
     <div ref={setNodeRef} {...attributes} {...listeners} style={style}>
       <div className="flex flex-col" {...listeners}>
         <div className="h-18">
-          <div className='font-bold'>{t('Id do Pedido')}:</div> {id}
+          <div className='font-bold'>{t('Id do Pedidooo')}:</div> {id}
         </div>
         <div className="h-14">
           <div className='font-bold'>{t('Pedido')}:</div> {pedido}
