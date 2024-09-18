@@ -35,6 +35,7 @@ export default async function middleware(req: NextRequest) {
   const redirectUrl = new URL('/auth/login', req.url);
   redirectUrl.searchParams.set('callbackUrl', encodeURI(req.url));
 
+
   // JWT strategy
   if (env.nextAuth.sessionStrategy === 'jwt') {
     const token = await getToken({
@@ -44,6 +45,7 @@ export default async function middleware(req: NextRequest) {
     if (!token) {
       return NextResponse.redirect(redirectUrl);
     }
+    
   }
 
   // Database strategy
@@ -62,7 +64,10 @@ export default async function middleware(req: NextRequest) {
     if (!session.user) {
       return NextResponse.redirect(redirectUrl);
     }
+ 
   }
+
+ 
 
   // All good, let the request through
   return NextResponse.next();

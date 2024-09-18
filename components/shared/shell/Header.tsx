@@ -31,7 +31,7 @@ const Header = ({ setSidebarOpen }: HeaderProps) => {
 
   return (
     <div
-      className="sticky top-0 z-40 flex h-14 shrink-0 items-center  dark:border-gray-600 border-b px-4 sm:gap-x-6 sm:px-6 lg:px-8 dark:bg-black dark:text-white" style={{ borderBottom: "2px solid #bab0b066" }}>
+      className="top-0 z-40 flex h-14 shrink-0 items-center  dark:border-gray-600 border-b px-4 sm:gap-x-6 sm:px-6 lg:px-8 dark:bg-black dark:text-white" style={{ borderBottom: "2px solid #bab0b066" }}>
       <button
         type="button"
         className="-m-2.5 p-2.5 text-gray-700 dark:text-gray-50 lg:hidden"

@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import Card, { CardType } from "./Card";
@@ -31,14 +31,16 @@ export type ColumnType = {
   onClickEdit: () => void;
 };
 
-const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClass, iconColorClass,buttonColorClass }) => {
+const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClass, iconColorClass, buttonColorClass }) => {
   const { setNodeRef } = useDroppable({ id: id });
   const { t } = useTranslation('common');
   const [newTitle, setNewTitle] = useState(title);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
- 
+
   const router = useRouter();
   const { slug } = router.query;
+
+  const [order, setOrders] = useState<CardType[]>(items);
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<Inputs>({
     resolver: zodResolver(FormDataSchema)
@@ -50,6 +52,58 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
     onAddItem(data);
     setShowAddItemModal(false);
   };
+
+  async function fetchItemFromAPI() {
+    console.log('atualizando');
+    try {
+      const response = await fetch(`/api/teams/${slug}/order`, {
+        method: "GET",
+        headers: { "content-type": "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      if (Array.isArray(data.orders)) {
+        setOrders(data.orders);
+        console.log('order', data);
+        return data;
+      } else {
+        console.error('Expected an array but got:', data);
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      return null;
+    }
+  }
+
+
+  useEffect(() => {
+    console.log('items', items);
+    setOrders(items);
+    console.log('orders', order)
+  }, [items]);
+
+
+  const handleDelete = async (id) => {
+    console.log('deletando', id);
+    try {
+      const response = await fetch(`/api/teams/${slug}/order`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: id }),
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao excluir o pedido');
+      }
+      toast.success('Pedido excluído com sucesso');
+      await fetchItemFromAPI(); // Atualiza a lista de pedidos após a exclusão  
+    } catch (error) {
+      console.error('Erro ao excluir o pedido:', error);
+      toast.error('Erro ao excluir o pedido');
+    }
+  };
+
 
   const handleCEPChange = async (event) => {
     const cep = event.target.value;
@@ -79,16 +133,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
   const onAddItem = async (data: Inputs) => {
     console.log('Adding item:', data);
-    const { pedido,
-      quantidade,
-      entregador,
-      numero,
-      complemento,
-      cep,
-      tel,
-      metodo_pag,
-      instrucoes 
-    } = data;
+    const { pedido, quantidade, entregador, numero, complemento, cep, tel, metodo_pag, instrucoes } = data;
     const cepFormatado = cep.replace("-", "");
 
     const validarCep = async (cep) => {
@@ -126,7 +171,6 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       instrucoes,
     };
 
-
     try {
       const response = await fetch(`/api/teams/${slug}/order`, {
         method: "POST",
@@ -135,12 +179,13 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       });
       const data = await response.json();
       console.log("response ==> ", data);
+      toast.success('Pedido adicionado com sucesso!');
+      fetchItemFromAPI(); // Atualize a lista de pedidos após adicionar um novo item  
     } catch (error) {
       console.error("error ==> ", error);
+      toast.error('Erro ao adicionar o pedido');
     }
-    toast.success('Pedido adicionado com sucesso!')
   };
-
 
   const showItemModal = () => {
     setShowAddItemModal(true);
@@ -153,8 +198,10 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
     }
   };
 
+
+
   return (
-    <SortableContext id={id} items={items} strategy={rectSortingStrategy}>
+    <SortableContext id={id} items={order} strategy={rectSortingStrategy}>
       <div
         ref={setNodeRef}
         className={`${borderColorClass} ${iconColorClass}`}
@@ -205,8 +252,9 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
             </PopoverContent>
           </Popover>
         </div>
-        {items.map((card) => (
+        {order.map((card, index) => (
           <Card
+          index={index}
             key={card.id}
             id={card.id}
             pedido={card.pedido}
@@ -222,6 +270,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
             quantidade={card.quantidade}
             metodo_pag={card.metodo_pag}
             instrucoes={card.instrucoes}
+            onDelete={() => handleDelete(card.id)}
           />
         ))}
       </div>
@@ -242,7 +291,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                   <div className="space-y-2 pl-8 ">
                     <label className='text-black '>{t('Produtos: ')}</label>
                     <input
-                      placeholder='Insira os produtos do pedidooo'
+                      placeholder='Insira os produtos do pedido'
                       className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60 '
                       {...register('pedido')}
                     />
@@ -254,6 +303,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                   <div className="space-y-2 pl-7 ">
                     <label className='text-black'>{t('Quantidade: ')}</label>
                     <input
+                    type="number"
                       placeholder='Insira a quantidade'
                       className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl'
                       {...register('quantidade')}
@@ -378,7 +428,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                   <div className="space-y-2 flex flex-col pl-8 w-full pr-10">
                     <label className='text-black'>{t('Instruções Especiais: ')}</label>
                     <textarea
-                      className="textarea textarea-bordered bg-gray-100 text-black "
+                      className="textarea textarea-bordered bg-gray-100 text-black max-h-[100px]"
                       placeholder="Caso exista, informe alguma instrução"
                       {...register('instrucoes')}
                     ></textarea>
