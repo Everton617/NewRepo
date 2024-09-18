@@ -32,9 +32,9 @@ const DrawerOverlay = React.forwardRef<
 ))
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 
-const DrawerContent = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
+const DrawerContent = React.forwardRef<  
+  React.ElementRef<typeof DrawerPrimitive.Content>,  
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & { children?: React.ReactNode }  
 >(({ className, children, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
