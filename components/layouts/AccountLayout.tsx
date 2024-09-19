@@ -2,7 +2,8 @@ import React from 'react';
 import AppShell from '../shared/shell/AppShell';
 import { SWRConfig } from 'swr'
 import CommandPallete from '@/components/commandPallete';
-import { Toaster } from "react-hot-toast";import ChatwootWidget from '../widgets/chatWoot';
+import { Toaster } from "@/components/ui/sonner"
+import ChatwootWidget from '../widgets/chatWoot';
 ;
 
 interface AccountLayoutProps {
@@ -18,7 +19,7 @@ export default function AccountLayout({ children }: AccountLayoutProps) {
     >
       <AppShell>{children}</AppShell>
       <ChatwootWidget />
-      <Toaster position="top-center" />
+      <Toaster  />
       <CommandPallete/>
     </SWRConfig>
   );

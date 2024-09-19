@@ -15,6 +15,7 @@ import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/router';
 import { toast } from "sonner"
+
 import { useTranslation } from 'next-i18next';
 
 const containerColors = [
@@ -88,6 +89,8 @@ export default function App() {
   const { slug } = router.query;
   const { t } = useTranslation('common');
 
+  const [isDraggingDisabled, setIsDraggingDisabled] = useState(false);
+
   async function fetchItemFromAPI(slug) {
 
     try {
@@ -109,7 +112,7 @@ export default function App() {
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetchItemFromAPI(slug);
-      console.log('Fetched data:', data);  // Adicione este log
+       // Adicione este log
 
       if (data && Array.isArray(data.orders)) {
         // Mapeie os dados recebidos para os containers
@@ -151,6 +154,8 @@ export default function App() {
 
 
   const handleDragOver = (event: DragOverEvent) => {
+
+  
     const { active, over, delta } = event;
     const activeId = String(active.id);
     const overId = over ? String(over.id) : null;
@@ -159,6 +164,9 @@ export default function App() {
     if (!activeColumn || !overColumn || activeColumn === overColumn) {
       return null;
     }
+    console.log(activeId)
+    console.log(overId)
+    console.log(overColumn)
     setColumns((prevState) => {
       const activeItems = activeColumn.items;
       const overItems = overColumn.items;
@@ -216,6 +224,7 @@ export default function App() {
   };
   
   const handleDragEnd = async (event: DragEndEvent) => {
+    
     const { active, over } = event;
     
     const activeId = String(active.id);
@@ -238,7 +247,12 @@ export default function App() {
     // Só atualiza se houver mudança na posição  
     if (activeIndex !== overIndex) {
       try {
+        setIsDraggingDisabled(true);
         await updateOrderStatus(itemToMove.id, newStatus);
+  
+        if(isDraggingDisabled){
+          toast('testando')
+        }
 
         setColumns((prevState) => {
           return prevState.map((column) => {
@@ -250,7 +264,18 @@ export default function App() {
             }
           });
         });
-        toast.success(`Pedido movido para a coluna: ${newStatus}`); 
+        toast.success(`Pedido movido para a coluna: ${newStatus}`, {
+          style: {
+            backgroundColor: '#4caf50',
+            color: '#fff',
+            borderRadius: '8px',
+            padding: '10px',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+          },
+        }); 
+        setTimeout(() => {
+          setIsDraggingDisabled(false); // Re-enable dragging
+        }, 5000);
       } catch (error) {
         console.error('Error updating order status or columns:', error);
         // Opcional: adicionar lógica de fallback ou notificação ao usuário  
@@ -268,11 +293,14 @@ export default function App() {
  
  
   return (
+    
     <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragEnd={handleDragEnd}
-      onDragOver={handleDragOver}
+    sensors={sensors}
+    collisionDetection={closestCorners}
+    onDragEnd={isDraggingDisabled ? undefined : handleDragEnd}  // Disable handler if dragging is disabled
+    onDragOver={isDraggingDisabled ? undefined : handleDragOver} // Disable handler if dragging is disabled
+    onDragStart={isDraggingDisabled ? undefined : () => {}}
+
     >
       <h1 className="font-bold text-2xl">{t('Gestor de Pedidos')}</h1>
       <div
@@ -289,7 +317,7 @@ export default function App() {
             iconColorClass={iconColors[index % iconColors.length]}
             buttonColorClass={buttonColors[index % iconColors.length]}
             onAddItem={column.onAddItem}
-            onClickEdit={column.onClickEdit}  // Passa a classe de borda  
+            onClickEdit={column.onClickEdit}  
           />
         ))}
       </div>

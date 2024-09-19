@@ -66,7 +66,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       const data = await response.json();
       if (Array.isArray(data.orders)) {
         setOrders(data.orders);
-        console.log('order', data);
+        
         return data;
       } else {
         console.error('Expected an array but got:', data);
@@ -79,9 +79,9 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
 
   useEffect(() => {
-    console.log('items', items);
+    
     setOrders(items);
-    console.log('orders', order)
+    
   }, [items]);
 
 
@@ -206,7 +206,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
         ref={setNodeRef}
         className={`${borderColorClass} ${iconColorClass}`}
         style={{
-          width: "400px",
+          minWidth: "300px",
           background: "rgba(245,247,249,1.00)",
           marginRight: "10px",
           borderRadius: "10px"
