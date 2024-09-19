@@ -31,7 +31,7 @@ const Payments = ({ teamFeatures }) => {
   }
 
   if (!team) {
-    return <Error message={t('Time não encontrado')} />;
+    return <Error message={t('Time não encontr')} />;
   }
 
   const plans = data?.data?.products || [];
