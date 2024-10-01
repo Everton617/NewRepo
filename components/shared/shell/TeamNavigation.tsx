@@ -17,9 +17,9 @@ const TeamNavigation = ({ slug, activePathname }: NavigationItemsProps) => {
   const menus: MenuItem[] = [
     {
       name: t('DashBoard'),
-      href: `/teams/${slug}/products`,
+      href: `/teams/${slug}/dashboard`,
       icon: MdOutlineDashboard ,
-      active: activePathname === `/teams/${slug}/products`,
+      active: activePathname === `/teams/${slug}/dashboard`,
     },
     {
       name: t('Gestor de Pedidos'),
