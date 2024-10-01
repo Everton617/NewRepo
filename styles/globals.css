@@ -19,3 +19,9 @@
 .buttonStyles{
   background-color: red;
 }
+
+@media (min-width: 1020px) and (max-width: 1400px) {
+  .custom-icon {
+    display: none;
+  }
+}

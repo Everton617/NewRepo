@@ -92,6 +92,7 @@ model Team {
   evo_instance_name            String?                        @unique
   createdAt                    DateTime                       @default(now())
   updatedAt                    DateTime                       @default(now())
+  isOpen                       Boolean                        @default(false)
   members                      TeamMember[]
   invitations                  Invitation[]
   apiKeys                      ApiKey[]
@@ -438,6 +439,8 @@ model Price {
   service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 }
 
+
+
 model jackson_store {
   key        String    @id(map: "_jackson_store_key") @db.VarChar(1500)
   value      String
@@ -445,7 +448,7 @@ model jackson_store {
   tag        String?   @db.VarChar(64)
   createdAt  DateTime  @default(now()) @db.Timestamp(6)
   modifiedAt DateTime? @db.Timestamp(6)
-  namespace  String?   @db.VarChar(64)
+  namespace  String?   @db.VarChar(256)
 
   jackson_index jackson_index[]
 
@@ -472,3 +475,4 @@ model jackson_ttl {
   @@index([expiresAt], map: "_jackson_ttl_expires_at")
   @@ignore
 }
+
