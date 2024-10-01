@@ -33,12 +33,12 @@ const TeamNavigation = ({ slug, activePathname }: NavigationItemsProps) => {
       icon: ArchiveBoxIcon,
       active: activePathname === `/teams/${slug}/inventory`,
     },
-    {
+    /*{
       name: t('Campanhas'),
       href: `/teams/${slug}/scheduleMsg`,
       icon: ChatBubbleOvalLeftEllipsisIcon,
       active: activePathname === `/teams/${slug}/scheduleMsg`,
-    },
+    }, */
     {
       name: t('Contatos'),
       href: `/teams/${slug}/contatos`,
