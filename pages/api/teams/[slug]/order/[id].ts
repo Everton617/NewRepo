@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getCurrentUserWithTeam, throwIfNoTeamAccess} from "models/team";
+import { getCurrentUserWithTeam, throwIfNoTeamAccess } from "models/team";
 import { ApiError } from "@/lib/errors";
 import { getUniqueOrder, updateOrder } from "models/order";
 import { throwIfNotAllowed } from "models/user";
 import { updateOrderSchema, validateWithSchema } from "@/lib/zod";
+
 
 export default async function handler(
     req: NextApiRequest,
@@ -15,6 +16,9 @@ export default async function handler(
         switch (req.method) {
             case "PATCH":
                 await handlePATCH(req, res); // Novo caso para atualizar o status
+                break;
+            case "PUT":
+                await handlePUT(req, res); // Novo caso para atualizar o status
                 break;
             default:
                 res.setHeader("Allow", ["PUT", "DELETE", "PATCH"]);
@@ -42,3 +46,22 @@ async function handlePATCH(req: NextApiRequest, res: NextApiResponse) {
 
     return res.status(200).json({ message: "Order status updated successfully", order: updatedOrder });
 }
+
+
+async function handlePUT(req: NextApiRequest, res: NextApiResponse) {
+    const user = await getCurrentUserWithTeam(req, res);
+    throwIfNotAllowed(user, "team_order", "update");
+    const orderId = req.query.id;
+    const { motivo_cancelamento } = req.body;
+    if (!orderId) throw new ApiError(422, "missing required parameter: missing 'id'");
+    if (!motivo_cancelamento) throw new ApiError(422, "missing required parameter: missing 'motivoCancelamento'");
+    if (!await getUniqueOrder(orderId as string, user.team.id)) throw new ApiError(404, "order id not found");
+  
+    // Assumindo que você quer atualizar o status do pedido para "cancelado"
+    const updatedOrder = await prisma?.order.update({
+        where: { id: orderId as string },
+        data: { motivo_cancelamento },
+      });
+  
+    return res.status(200).json({ message: "Order canceled successfully", order: updatedOrder });
+  }

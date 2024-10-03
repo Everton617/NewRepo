@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FormDataSchema } from '@/lib/FormDataSchema';
 import { z } from "zod";
 import { useForm, SubmitHandler } from 'react-hook-form';
+import SelectTest, { OptionsOrGroups, GroupBase } from 'react-select';
 
 import { useRouter } from 'next/router';
 import toast from "react-hot-toast";
@@ -31,11 +32,21 @@ export type ColumnType = {
   onClickEdit: () => void;
 };
 
+interface products {
+  id: string;
+  name: string
+  stockQuant: number;
+}
+
 const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClass, iconColorClass, buttonColorClass }) => {
   const { setNodeRef } = useDroppable({ id: id });
   const { t } = useTranslation('common');
   const [newTitle, setNewTitle] = useState(title);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
+
+  const [products, setProducts] = useState<products[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantityOptions, setQuantityOptions] = useState([]);
 
   const router = useRouter();
   const { slug } = router.query;
@@ -66,22 +77,50 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       const data = await response.json();
       if (Array.isArray(data.orders)) {
         setOrders(data.orders);
-        
+
         return data;
       } else {
-        console.error('Expected an array but got:', data);
+        console.error('Expected an array but got:', JSON.stringify(data.orders, null, 2));
+        console.log("Orders from Prisma:",);
       }
+
+
     } catch (error) {
       console.error('Fetch error:', error);
       return null;
     }
   }
 
+  const fetchProducts = async () => {
+
+    try {
+      const response = await fetch(`/api/teams/${slug}/inventory/products`, {
+        method: "GET",
+        headers: { "content-type": "application/json" },
+      });
+
+      if (!response.ok) {
+        console.log(await response.json())
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+
+      if (Array.isArray(data.inventoryProducts)) {
+        setProducts(data.inventoryProducts);
+        console.log(data.inventoryProducts)
+      } else {
+
+        console.error('Expected an array but got:', data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar Subcategorias:', error);
+    }
+  };
 
   useEffect(() => {
-    
+
     setOrders(items);
-    
+
   }, [items]);
 
 
@@ -133,9 +172,12 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
   const onAddItem = async (data: Inputs) => {
     console.log('Adding item:', data);
-    const { pedido, quantidade, entregador, numero, complemento, cep, tel, metodo_pag, instrucoes } = data;
-    const cepFormatado = cep.replace("-", "");
+    const { quantidade, entregador, numero, complemento, cep, tel, metodo_pag, instrucoes } = data;
 
+    // Converter a string de produtos em um array
+    const produtosArray = products
+
+    const cepFormatado = cep.replace("-", "");
     const validarCep = async (cep) => {
       const url = `https://viacep.com.br/ws/${cep}/json/`;
       try {
@@ -157,9 +199,11 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       return;
     }
 
-    console.log('Container title:', title);
+    console.log('Container title:', title); // Certifique-se de que 'title' está definido
+
+    // Usar 'produtosArray' em vez de 'pedido' no objeto 'order'
     const order = {
-      pedido,
+      pedido: produtosArray, // Agora 'pedido' é um array de produtos
       quantidade,
       status: title,
       entregador,
@@ -177,16 +221,30 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order }),
       });
+
       const data = await response.json();
       console.log("response ==> ", data);
       toast.success('Pedido adicionado com sucesso!');
-      fetchItemFromAPI(); // Atualize a lista de pedidos após adicionar um novo item  
+      fetchItemFromAPI();
     } catch (error) {
       console.error("error ==> ", error);
       toast.error('Erro ao adicionar o pedido');
     }
   };
 
+  const handleInputChange = (selectedOption) => {
+    setSelectedProduct(selectedOption);
+    // Gerar opções de quantidade com base no estoque do produto selecionado
+    if (selectedOption) {
+      const options = [];
+      for (let i = 1; i <= selectedOption.customAbbreviation.customAbbreviation; i++) {
+        options.push({ label: i, value: i });
+      }
+      setQuantityOptions(options);
+    } else {
+      setQuantityOptions([]);
+    }
+  };
   const showItemModal = () => {
     setShowAddItemModal(true);
   };
@@ -197,7 +255,46 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       console.log(`Título alterado para: ${newTitle}`);
     }
   };
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      backgroundColor: '',
+      borderColor: state.isFocused ? 'grey' : '#191f38',
+      color: '#000000',
+      width: '200px',  // Cor do texto dentro do controle  
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected ? '#f2f1f1' : state.isFocused ? '#f0f0f0' : '#fff',
+      color: state.isSelected ? '#000000' : '#000',
+      fontSize: '16px',  // Tamanho da fonte das opções  
+      fontWeight: 600,
+      cursor: 'pointer',
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: '#888888',  // Cor do placeholder  
+      fontSize: '16px',  // Tamanho da fonte do placeholder (opcional)  
+      fontWeight: 400,   // Peso da fonte do placeholder (opcional)  
+    }),
+  };
 
+
+
+  const option = products.map((product) => ({
+    label: product.name,
+    value: product.name,
+    customAbbreviation: { customAbbreviation: product.stockQuant },
+  }));
+
+  const formatOptionLabel = ({ label, customAbbreviation }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <span>{label}</span>
+      <span style={{ fontSize: '12px' }}>({customAbbreviation.customAbbreviation} {('em estoque')})</span>
+    </div>
+  );
+
+  
 
 
   return (
@@ -254,7 +351,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
         </div>
         {order.map((card, index) => (
           <Card
-          index={index}
+            index={index}
             key={card.id}
             id={card.id}
             pedido={card.pedido}
@@ -270,6 +367,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
             quantidade={card.quantidade}
             metodo_pag={card.metodo_pag}
             instrucoes={card.instrucoes}
+            motivo_cancelamento={card.motivo_cancelamento}
             onDelete={() => handleDelete(card.id)}
           />
         ))}
@@ -286,142 +384,129 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
 
 
-                <div className="grid grid-cols-2 gap-4 ">
+                <div className="">
 
-                  <div className="space-y-2 pl-8 ">
-                    <label className='text-black '>{t('Produtos: ')}</label>
-                    <input
-                      placeholder='Insira os produtos do pedido'
-                      className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60 '
-                      {...register('pedido')}
+                  <div className="flex justify-center items-center justify-around w-full">
+                    <SelectTest
+                      onMenuOpen={fetchProducts}
+                      closeMenuOnSelect={false}
+                      placeholder={"Escolha um item"}
+                      options={option}
+                      styles={customStyles}
+                      onChange={handleInputChange}
+                      loadingMessage={() => null}
+                      noOptionsMessage={() => "No Options"}
+                      formatOptionLabel={formatOptionLabel}
                     />
-                    {errors.pedido?.message && (
-                      <p className='text-sm text-red-400'>{errors.pedido.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 pl-7 ">
-                    <label className='text-black'>{t('Quantidade: ')}</label>
-                    <input
-                    type="number"
-                      placeholder='Insira a quantidade'
-                      className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl'
-                      {...register('quantidade')}
+                    <SelectTest
+                      placeholder={" Quantidade"}
+                      options={quantityOptions}
+                      styles={customStyles}
+                    // ... outras props do segundo select
                     />
-                    {errors.quantidade?.message && (
-                      <p className='text-sm text-red-400'>{errors.quantidade.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 pt-2 pl-7">
-                    <label className='text-black block '>{t('CEP: ')}</label>
-                    <input
-                      placeholder='Insira o cep do destinatário'
-                      className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
-                      {...register('cep', { required: 'O CEP é obrigatório.' })}
-                      onChange={handleCEPChange} // Adiciona o evento onChange para buscar dados do CEP
-                    />
-                    {errors.cep?.message && (
-                      <p className='text-sm text-red-400'>{errors.cep.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 pt-2 pl-7 ">
-                    <label className='text-black block'>{t('Estado: ')}</label>
-                    <input
-                      readOnly
-                      placeholder='Insira o estado do destinatário'
-                      className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed w-50 `}
-                      {...register('estado')}
-                    />
-                    {errors.estado?.message && (
-                      <p className='text-sm text-red-400'>{errors.estado.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 pt-0 pl-8">
-                    <label className='text-black block'>{t('Cidade: ')}</label>
-                    <input
-                      readOnly
-                      placeholder='Insira a cidade do destinatário'
-                      className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed w-60 `}
-                      {...register('cidade')}
-                    />
-                    {errors.cidade?.message && (
-                      <p className='text-sm text-red-400'>{errors.cidade.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1 pt-1 pl-8 ">
-                    <label className='text-black block'>{t('Rua: ')}</label>
-                    <input
-                      placeholder='Insira a rua do destinatário'
-                      readOnly
-                      className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed  w-50 `}
-                      {...register('rua')}
-                    />
-                    {errors.rua?.message && (
-                      <p className='text-sm text-red-400'>{errors.rua.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 pl-7 pt-1">
-                    <label className='text-black'>{t('Número: ')}</label>
-                    <input
-                      placeholder='Insira o número residencial do destinatário'
-                      className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
-                      {...register('numero')}
-                    />
-                    {errors.numero?.message && (
-                      <p className='text-sm text-red-400'>{errors.numero.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 pt-2 pl-8 p-2">
-                    <label className='text-black '>{t('Complemento: ')}</label>
-                    <input
-                      placeholder=''
-                      className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-50'
-                      {...register('complemento')}
-                    />
-                    {errors.complemento?.message && (
-                      <p className='text-sm text-red-400'>{errors.complemento.message}</p>
-                    )}
                   </div>
 
 
 
 
 
-                  <div className="space-y-2 pl-7 ">
-                    <label className='text-black'>{t('Insira o telefone do destinatário: ')}</label>
-                    <input
-                      placeholder='Insira o telefone do destinatário'
-                      className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
-                      {...register('tel')}
-                    />
-                    {errors.tel?.message && (
-                      <p className='text-sm text-red-400'>{errors.tel.message}</p>
-                    )}
+                  <div className="grid grid-cols-2 gap-4 ">
+                    <div className="space-y-2 pt-2 pl-7">
+                      <label className='text-black block '>{t('CEP: ')}</label>
+                      <input
+                        placeholder='Insira o cep do destinatário'
+                        className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
+                        {...register('cep', { required: 'O CEP é obrigatório.' })}
+                        onChange={handleCEPChange} // Adiciona o evento onChange para buscar dados do CEP
+                      />
+                      {errors.cep?.message && (
+                        <p className='text-sm text-red-400'>{errors.cep.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2 pt-2 pl-7 ">
+                      <label className='text-black block'>{t('Estado: ')}</label>
+                      <input
+                        readOnly
+                        placeholder='Insira o estado do destinatário'
+                        className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed w-50 `}
+                        {...register('estado')}
+                      />
+                      {errors.estado?.message && (
+                        <p className='text-sm text-red-400'>{errors.estado.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2 pt-0 pl-8">
+                      <label className='text-black block'>{t('Cidade: ')}</label>
+                      <input
+                        readOnly
+                        placeholder='Insira a cidade do destinatário'
+                        className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed w-60 `}
+                        {...register('cidade')}
+                      />
+                      {errors.cidade?.message && (
+                        <p className='text-sm text-red-400'>{errors.cidade.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-1 pt-1 pl-8 ">
+                      <label className='text-black block'>{t('Rua: ')}</label>
+                      <input
+                        placeholder='Insira a rua do destinatário'
+                        readOnly
+                        className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed  w-50 `}
+                        {...register('rua')}
+                      />
+                      {errors.rua?.message && (
+                        <p className='text-sm text-red-400'>{errors.rua.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2 pl-7 pt-1">
+                      <label className='text-black'>{t('Número: ')}</label>
+                      <input
+                        placeholder='Insira o número residencial do destinatário'
+                        className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
+                        {...register('numero')}
+                      />
+                      {errors.numero?.message && (
+                        <p className='text-sm text-red-400'>{errors.numero.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2 pt-2 pl-8 p-2">
+                      <label className='text-black '>{t('Complemento: ')}</label>
+                      <input
+                        placeholder=''
+                        className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-50'
+                        {...register('complemento')}
+                      />
+                      {errors.complemento?.message && (
+                        <p className='text-sm text-red-400'>{errors.complemento.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2 pl-7 ">
+                      <label className='text-black'>{t('Insira o telefone do destinatário: ')}</label>
+                      <input
+                        placeholder='Insira o telefone do destinatário'
+                        className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
+                        {...register('tel')}
+                      />
+                      {errors.tel?.message && (
+                        <p className='text-sm text-red-400'>{errors.tel.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2 pl-8">
+                      <label className='text-black'>{t('Entregador: ')}</label>
+                      <input
+                        placeholder='Nome do entregador'
+                        className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl'
+                        {...register('entregador')}
+                      />
+                      {errors.entregador?.message && (
+                        <p className='text-sm text-red-400'>{errors.entregador.message}</p>
+                      )}
+                    </div>
+
+
 
                   </div>
-
-
-
-                  <div className="space-y-2 pl-8">
-                    <label className='text-black'>{t('Entregador: ')}</label>
-                    <input
-                      placeholder='Nome do entregador'
-                      className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl'
-                      {...register('entregador')}
-                    />
-                    {errors.entregador?.message && (
-                      <p className='text-sm text-red-400'>{errors.entregador.message}</p>
-                    )}
-                  </div>
-
-
-
                 </div>
 
                 <div className='grid grid-cols-1 w-full'>

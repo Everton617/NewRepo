@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { useSortable } from "@dnd-kit/sortable";
@@ -7,6 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import { format } from 'date-fns';
 import { Button } from "../ui/button";
 import { IoTrashSharp } from "react-icons/io5";
+
 
 import {
   AlertDialog,
@@ -30,14 +31,33 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer"
 
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 import { TbListSearch } from "react-icons/tb";
 import { TbListCheck } from "react-icons/tb";
+import { MdReport } from "react-icons/md";
+import { useRouter } from 'next/router';
+import toast from "react-hot-toast";
+
 
 
 export type CardType = {
   index: number;
   id: UniqueIdentifier;
-  pedido: string
+  pedido: string[]
   createdAt: string;
   entregador: string;
   rua: string;
@@ -50,6 +70,7 @@ export type CardType = {
   quantidade: number;
   metodo_pag: string;
   instrucoes: string;
+  motivo_cancelamento: string;
   onDelete: (id) => void;
 };
 
@@ -67,6 +88,7 @@ const Card: FC<CardType> = ({ id,
   metodo_pag,
   quantidade,
   instrucoes,
+  motivo_cancelamento,
   onDelete
 }) => {
   // useSortableに指定するidは一意になるよう設定する必要があります。s
@@ -74,7 +96,40 @@ const Card: FC<CardType> = ({ id,
   const { attributes, listeners, setNodeRef, transform } = useSortable({
     id: id
   });
+  const router = useRouter();
+  const { slug } = router.query;
 
+
+  const [selectedOption, setSelectedOption] = useState(motivo_cancelamento);
+  const [isLoading, setIsLoading] = useState(false);
+
+
+  const handleSelect = async (option: string, pedidoId: UniqueIdentifier) => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`/api/teams/${slug}/order/${pedidoId}`, { // Ajuste a rota!
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ motivo_cancelamento: option }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao atualizar pedido: ${response.status}`);
+      }
+
+      toast.success('Pedido Cancelado com sucesso!')
+      setSelectedOption(option);
+
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+      // Lidar com o erro, ex: exibir uma mensagem para o usuário
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const style = {
     margin: "10px",
@@ -151,8 +206,80 @@ const Card: FC<CardType> = ({ id,
                 <DrawerTitle className="text-xl pb-8 flex items-center gap-2">
                   {t('Informações do pedido')}
                   <div>
-                    <TbListCheck className="min-w-[30px] min-h-[35px]"/>
-                  </div></DrawerTitle>
+                    <TbListCheck className="min-w-[30px] min-h-[35px]" />
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className="bg-white hover:bg-red-400 text-red-400 hover:text-white">
+                        <MdReport className="min-w-[30px] min-h-[35px] " />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>{t('Cancelar Pedido')}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuGroup>
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>{t('Problemas no delivery')}</DropdownMenuSubTrigger>
+                          <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem onSelect={() => handleSelect(t('Atraso na entrega'), id)}>
+                                {t('Atraso na entrega')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleSelect(t('Entregador não chegou'), id)}>
+                                {t('Entregador não chegou')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleSelect(t('Pedido entregue para a pessoa errada'), id)}>
+                                {t('Pedido entregue para a pessoa errada')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleSelect(t('Entregador rude ou desrespeitoso'), id)}>
+                                {t('Entregador rude ou desrespeitoso')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleSelect(t('Produto Danificado'), id)}>
+                                {t('Produto Danificado')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleSelect(t('Endereço não encontrado'), id)}>
+                                {t('Endereço não encontrado')}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </DropdownMenuSubContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                      </DropdownMenuGroup>
+
+                      <DropdownMenuGroup>
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>{t('Problemas com o Produto')}</DropdownMenuSubTrigger>
+                          <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem onSelect={() => handleSelect(t('Produto incorreto'), id)}>
+                                {t('Produto incorreto')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleSelect(t('Pedido incompleto'), id)}>
+                                {t('Pedido incompleto')}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </DropdownMenuSubContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                      </DropdownMenuGroup>
+
+                      <DropdownMenuGroup>
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>{t('Problemas com o Pagamento')}</DropdownMenuSubTrigger>
+                          <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem onSelect={() => handleSelect(t('Fraude no pagamento'), id)}>
+                                {t('Fraude no pagamento')}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </DropdownMenuSubContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </DrawerTitle>
                 <DrawerDescription>
                   <div className="flex flex-row gap-12 pl-4" {...listeners}>
                     <div>
@@ -160,7 +287,12 @@ const Card: FC<CardType> = ({ id,
                         <div className='font-bold text-lg'>{t('Id do Pedido')}:</div> {id}
                       </div>
                       <div className="h-14 text-[15px]">
-                        <div className='font-bold text-lg'>{t('Pedido')}:</div> {pedido}
+                        <div className='font-bold text-lg'>{t('Pedido')}:</div>
+                        <ul> {/* Lista não ordenada para os itens do pedido */}
+                          {pedido.map((item, index) => (
+                            <li key={index}>{item}</li>
+                          ))}
+                        </ul>
                       </div>
                       <div className="h-14 text-[15px]">
                         <div className='font-bold text-lg'>{t('Quantidade')}:</div> {quantidade}

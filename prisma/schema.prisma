@@ -106,6 +106,7 @@ model Team {
   Category_Product             Category_Product[]
   Category_SubCategory         Category_SubCategory[]
   Category_SubCategory_Product Category_SubCategory_Product[]
+  historico                    historico[]
 
   @@index([billingId])
 }
@@ -305,7 +306,7 @@ enum OrderStatus {
 
 model Order {
   id          String      @id @default(uuid())
-  pedido      String
+  pedido      String[]
   quantidade  Int
   status      OrderStatus @default(BACKLOG)
   horario     DateTime
@@ -322,8 +323,10 @@ model Order {
   createdBy   String
   teamId      String
   userId      String
+  motivo_cancelamento String @default("undefined")
 
   OrderItem OrderItem[]
+  historico                    historico[]
 
   team Team @relation(fields: [teamId], references: [id])
   user User @relation(fields: [userId], references: [id])
@@ -437,6 +440,23 @@ model Price {
   created       DateTime
 
   service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+}
+
+model historico {
+  id               Int      @id @default(autoincrement())
+  nome             String
+  formadepagamento String
+  valor            Float
+  data             String
+  horario          String
+  nomeentregador   String
+  orderId          String
+  teamId           String
+  status           String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  Order     Order  @relation(fields: [orderId], references: [id])
+  Team     Team   @relation(fields: [teamId], references: [id])
 }
 
 

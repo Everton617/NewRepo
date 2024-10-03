@@ -124,7 +124,7 @@ export default function App() {
         setColumns(updatedContainers);
       } else {
         toast.error('Failed to fetch orders');
-        console.error('Data fetched is not an array:', data);
+        console.error('Data fetched is not an array:', data?.orders);
       }
 
     };

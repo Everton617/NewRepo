@@ -9,15 +9,14 @@ import { IoBagHandleSharp } from "react-icons/io5";
 import { IoQrCode } from "react-icons/io5";
 import { useTranslation } from 'next-i18next';
 import { GetServerSideProps } from "next";
-import { useState } from "react";
-import nookies from 'nookies';
-import { IoStorefrontOutline } from "react-icons/io5";
 
-import { useSession } from 'next-auth/react';
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import nookies from 'nookies';
+
+
+
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
+    
     // Busca cookies do contexto da requisição (ctx)
     const cookies = nookies.get(ctx);
 
@@ -32,46 +31,12 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 };
 
 
-const DashBoardDisplay = ({ token }: { token: string | null }) => {
-    const [isStoreOpen, setIsStoreOpen] = useState(false);
-    const { data: session } = useSession();
+const DashBoardDisplay = () => {
+ 
+   
     const { t } = useTranslation('common');
 
-    const handleToggle = async (checked: boolean) => {
-        setIsStoreOpen(checked);
-        console.log('Todos os cookies:',);
-        if (checked) {
-            // Verifica se há uma sessão disponível
-            if (session) {
-                const accessToken = token; // Nome do cookie que armazena o accessToken
-                console.log('token', accessToken)
-                try {
-                    const response = await fetch('https://fluxo.qu1ck.com.br/webhook/e5c9c628-317c-49ca-b46d-e92b63c7e27d', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            // Adiciona o token da sessão aos cabeçalhos
-                            'Authorization': `Bearer ${accessToken || ''}`,
-                        },
-                        body: JSON.stringify({
-                            message: 'Abrir Loja',
-                            token: accessToken
-                        }),
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Erro ao enviar a mensagem');
-                    }
-
-                    console.log('Sessão enviada com sucesso!');
-                } catch (error) {
-                    console.error('Erro ao enviar a mensagem:', error);
-                }
-            } else {
-                console.log('Nenhuma sessão ativa.');
-            }
-        }
-    };
+   ;
 
 
     // Mock data for the chart
@@ -94,37 +59,10 @@ const DashBoardDisplay = ({ token }: { token: string | null }) => {
 
     return (
         <div className="p-8">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                {/* Store Status Card */}
+            <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
+                
 
-                <Card className="">
-                    <CardHeader className="flex flex-row justify-between">
-                        <CardTitle className="text-xl font-bold">{('Status da loja')}</CardTitle>
-                        <div className="flex flex-col items-center gap-2">
-                            <Switch className="data-[state=checked]:bg-green-400 data-[state=unchecked]:bg-red-400" id="store-status" checked={isStoreOpen} onCheckedChange={handleToggle} />
-                            <Label htmlFor="store-status">{isStoreOpen ? 'Aberta' : 'Fechada'}</Label>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="">
-                        <div className="flex items-center space-x-4 ">
-                            <div className="flex items-center gap-2">
-
-                                <IoStorefrontOutline className={`h-7 w-7 min-h-5 min-w-5 custom-icon ${isStoreOpen ? 'text-green-500' : 'text-red-500'}`} />
-
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-semibold">{t('A loja está')}{isStoreOpen ? ' aberta' : ' fechada'}</h3>
-                                    <p className="text-sm text-gray-500">
-                                        {isStoreOpen
-                                            ? 'Clientes podem fazer pedidos'
-                                            : 'Clientes não podem fazer pedidos'}
-                                    </p>
-                                </div>
-                            </div>
-
-                        </div>
-                    </CardContent>
-                </Card>
-
+               
                 {/* Daily Orders Card */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

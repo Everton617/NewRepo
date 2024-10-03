@@ -2,7 +2,11 @@ import { z } from "zod";
 import { OrderStatus } from "@prisma/client";
 
 
-export const orderPedido = z.string();
+export const orderItemSchema = z.string(); 
+
+// Define o schema para o array de pedidos
+export const orderPedido = z.array(orderItemSchema);
+
 export const orderQuantidade = z.number().int().positive();
 export const orderStatus = z.nativeEnum(OrderStatus).optional();
 export const orderEntregador = z.string().regex(/^[\p{L}\s']+$/u, "apenas letras são permitidas");

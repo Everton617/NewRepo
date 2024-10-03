@@ -10,7 +10,7 @@ export enum EOrderStatus {
   
 export interface IOrder {  
     id?: string,  
-    pedido: string,  
+    pedido: string[]; 
     status: OrderStatus,  
     horario: Date,  
     entregador: string,  
@@ -28,13 +28,13 @@ export interface IOrder {
     userId: string  
 };  
   
-const orderSelects = {  
+export const orderSelects = {  
     id: true,  
     pedido: true,  
     quantidade: true,  
     status: true,  
     entregador: true, 
-     
+     motivo_cancelamento: true,
     rua: true,  
     numero: true,  
     complemento: true,  
