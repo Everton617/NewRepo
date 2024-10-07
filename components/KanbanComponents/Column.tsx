@@ -13,11 +13,23 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FormDataSchema } from '@/lib/FormDataSchema';
 import { z } from "zod";
 import { useForm, SubmitHandler } from 'react-hook-form';
-import SelectTest, { OptionsOrGroups, GroupBase } from 'react-select';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+
+
+
 
 import { useRouter } from 'next/router';
 import toast from "react-hot-toast";
-
+import { Separator } from "../ui/separator";
+import { Plus, Minus } from "lucide-react"
+import { FaTrash } from "react-icons/fa6";
 
 type Inputs = z.infer<typeof FormDataSchema>;
 
@@ -36,17 +48,24 @@ interface products {
   id: string;
   name: string
   stockQuant: number;
+  salePrice: number;
+  quantity: number;
 }
+
+interface pedido extends products { }
+
+
 
 const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClass, iconColorClass, buttonColorClass }) => {
   const { setNodeRef } = useDroppable({ id: id });
   const { t } = useTranslation('common');
   const [newTitle, setNewTitle] = useState(title);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
-
   const [products, setProducts] = useState<products[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quantityOptions, setQuantityOptions] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2;
+  const [pedidos, setPedidos] = useState<pedido[]>([]);
 
   const router = useRouter();
   const { slug } = router.query;
@@ -107,6 +126,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
       if (Array.isArray(data.inventoryProducts)) {
         setProducts(data.inventoryProducts);
+
         console.log(data.inventoryProducts)
       } else {
 
@@ -120,7 +140,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
   useEffect(() => {
 
     setOrders(items);
-
+    fetchProducts()
   }, [items]);
 
 
@@ -232,19 +252,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
     }
   };
 
-  const handleInputChange = (selectedOption) => {
-    setSelectedProduct(selectedOption);
-    // Gerar opções de quantidade com base no estoque do produto selecionado
-    if (selectedOption) {
-      const options = [];
-      for (let i = 1; i <= selectedOption.customAbbreviation.customAbbreviation; i++) {
-        options.push({ label: i, value: i });
-      }
-      setQuantityOptions(options);
-    } else {
-      setQuantityOptions([]);
-    }
-  };
+
   const showItemModal = () => {
     setShowAddItemModal(true);
   };
@@ -255,46 +263,98 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       console.log(`Título alterado para: ${newTitle}`);
     }
   };
-  const customStyles = {
-    control: (base, state) => ({
-      ...base,
-      backgroundColor: '',
-      borderColor: state.isFocused ? 'grey' : '#191f38',
-      color: '#000000',
-      width: '200px',  // Cor do texto dentro do controle  
-    }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isSelected ? '#f2f1f1' : state.isFocused ? '#f0f0f0' : '#fff',
-      color: state.isSelected ? '#000000' : '#000',
-      fontSize: '16px',  // Tamanho da fonte das opções  
-      fontWeight: 600,
-      cursor: 'pointer',
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: '#888888',  // Cor do placeholder  
-      fontSize: '16px',  // Tamanho da fonte do placeholder (opcional)  
-      fontWeight: 400,   // Peso da fonte do placeholder (opcional)  
-    }),
+
+
+
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    setCurrentPage(1);
+  };
+
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const setPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const adicionarPedido = (productId) => {
+    // Verifica se o produto já está no pedido
+    const existingProductIndex = pedidos.findIndex( // Corrigido: currentItems -> pedidos
+      (item) => item.id === productId
+    );
+
+    if (existingProductIndex !== -1) {
+      // Se o produto já existe, aumenta a quantidade
+      const updatedItems = [...pedidos];
+      updatedItems[existingProductIndex].quantity += 1;
+      setPedidos(updatedItems);
+    } else {
+      // Se o produto não existe, adiciona ao pedido com quantidade 1
+      const productToAdd = products.find((product) => product.id === productId);
+
+      if (productToAdd) {
+        setPedidos([...pedidos, { ...productToAdd, quantity: 1 }]);
+      } else {
+        // Tratar o caso em que o produto não é encontrado
+        console.error("Produto não encontrado!");
+      }
+    }
+  };
+
+  const removerPedido = (productId) => {
+    // Encontra o índice do produto no pedido
+    const productIndex = pedidos.findIndex(
+      (item) => item.id === productId
+    );
+
+    if (productIndex !== -1) {
+      // Se o produto existe...
+      const updatedItems = [...pedidos];
+      if (updatedItems[productIndex].quantity > 1) {
+        // Se a quantidade for maior que 1, diminui a quantidade
+        updatedItems[productIndex].quantity -= 1;
+      } else {
+        // Se a quantidade for 1, remove o produto do pedido
+        updatedItems.splice(productIndex, 1);
+      }
+      setPedidos(updatedItems);
+    }
+  };
+
+  const valorTotal = pedidos.reduce((total, pedido) => {
+    return total + pedido.salePrice * pedido.quantity;
+  }, 0);
+
+  const deletarPedido = (productId: string) => {
+    // Filtra o array 'pedidos' para manter apenas os pedidos cujo ID não corresponde ao ID a ser removido
+    const updatedItems = pedidos.filter((item) => item.id !== productId);
+    setPedidos(updatedItems);
   };
 
 
-
-  const option = products.map((product) => ({
-    label: product.name,
-    value: product.name,
-    customAbbreviation: { customAbbreviation: product.stockQuant },
-  }));
-
-  const formatOptionLabel = ({ label, customAbbreviation }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-      <span>{label}</span>
-      <span style={{ fontSize: '12px' }}>({customAbbreviation.customAbbreviation} {('em estoque')})</span>
-    </div>
-  );
-
-  
 
 
   return (
@@ -309,7 +369,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
           borderRadius: "10px"
         }}
       >
-        <div className="flex justify-between items-center p-2">
+        <div className="flex justify-between items-center=">
           <PlusIcon className={clsx('w-5 h-5 cursor-pointer', iconColorClass)} onClick={showItemModal} />
           <p
             style={{
@@ -374,44 +434,29 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       </div>
       {showAddItemModal && (
         <Dialog open={showAddItemModal} onOpenChange={setShowAddItemModal}>
-          <DialogContent className="min-w-[700px]">
+          <DialogContent className="min-w-[1400px] min-h-[950px]">
             <div><DialogTitle className="text-xl font-bold">{t('Adicione um novo Pedido')}</DialogTitle></div>
             <form onSubmit={handleSubmit(processForm)}
-              className='flex flex-1 flex-col gap-4 w-full'>
+              className='flex flex-col w-full'>
 
-              <div className="flex flex-col w-full items-start gap-y-5 overflow-auto max-h-[700px] pb-10">
+              <div className="flex  ">
 
-
-
-
-                <div className="">
-
-                  <div className="flex justify-center items-center justify-around w-full">
-                    <SelectTest
-                      onMenuOpen={fetchProducts}
-                      closeMenuOnSelect={false}
-                      placeholder={"Escolha um item"}
-                      options={option}
-                      styles={customStyles}
-                      onChange={handleInputChange}
-                      loadingMessage={() => null}
-                      noOptionsMessage={() => "No Options"}
-                      formatOptionLabel={formatOptionLabel}
-                    />
-                    <SelectTest
-                      placeholder={" Quantidade"}
-                      options={quantityOptions}
-                      styles={customStyles}
-                    // ... outras props do segundo select
-                    />
-                  </div>
-
-
-
-
-
-                  <div className="grid grid-cols-2 gap-4 ">
-                    <div className="space-y-2 pt-2 pl-7">
+                <div className="pr-10 flex flex-col">
+                  <div className="pl-[24px] "><h1 className="text-lg font-semibold mb-6">{t('Informações do destinatário')}</h1></div>
+                  <div className="grid grid-cols-2 max-h-[100px] gap-4">
+                    <div className=" pb-10">
+                      <label className='text-black block '>{t('Nome: ')}</label>
+                      <input
+                        placeholder='Insira o nome do destinatário'
+                        className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
+                        {...register('cep', { required: 'O CEP é obrigatório.' })}
+                        onChange={handleCEPChange} // Adiciona o evento onChange para buscar dados do CEP
+                      />
+                      {errors.cep?.message && (
+                        <p className='text-sm text-red-400'>{errors.cep.message}</p>
+                      )}
+                    </div>
+                    <div className="">
                       <label className='text-black block '>{t('CEP: ')}</label>
                       <input
                         placeholder='Insira o cep do destinatário'
@@ -423,19 +468,19 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         <p className='text-sm text-red-400'>{errors.cep.message}</p>
                       )}
                     </div>
-                    <div className="space-y-2 pt-2 pl-7 ">
+                    <div className="pb-10">
                       <label className='text-black block'>{t('Estado: ')}</label>
                       <input
                         readOnly
                         placeholder='Insira o estado do destinatário'
-                        className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed w-50 `}
+                        className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed w-60 `}
                         {...register('estado')}
                       />
                       {errors.estado?.message && (
                         <p className='text-sm text-red-400'>{errors.estado.message}</p>
                       )}
                     </div>
-                    <div className="space-y-2 pt-0 pl-8">
+                    <div className="">
                       <label className='text-black block'>{t('Cidade: ')}</label>
                       <input
                         readOnly
@@ -447,19 +492,19 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         <p className='text-sm text-red-400'>{errors.cidade.message}</p>
                       )}
                     </div>
-                    <div className="space-y-1 pt-1 pl-8 ">
+                    <div className="pb-10 ">
                       <label className='text-black block'>{t('Rua: ')}</label>
                       <input
                         placeholder='Insira a rua do destinatário'
                         readOnly
-                        className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed  w-50 `}
+                        className={`rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl hover:cursor-not-allowed  w-60 `}
                         {...register('rua')}
                       />
                       {errors.rua?.message && (
                         <p className='text-sm text-red-400'>{errors.rua.message}</p>
                       )}
                     </div>
-                    <div className="space-y-2 pl-7 pt-1">
+                    <div className="flex flex-col ">
                       <label className='text-black'>{t('Número: ')}</label>
                       <input
                         placeholder='Insira o número residencial do destinatário'
@@ -470,18 +515,18 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         <p className='text-sm text-red-400'>{errors.numero.message}</p>
                       )}
                     </div>
-                    <div className="space-y-2 pt-2 pl-8 p-2">
+                    <div className="flex flex-col  pb-10">
                       <label className='text-black '>{t('Complemento: ')}</label>
                       <input
                         placeholder=''
-                        className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-50'
+                        className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
                         {...register('complemento')}
                       />
                       {errors.complemento?.message && (
                         <p className='text-sm text-red-400'>{errors.complemento.message}</p>
                       )}
                     </div>
-                    <div className="space-y-2 pl-7 ">
+                    <div className="flex flex-col">
                       <label className='text-black'>{t('Insira o telefone do destinatário: ')}</label>
                       <input
                         placeholder='Insira o telefone do destinatário'
@@ -492,7 +537,100 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         <p className='text-sm text-red-400'>{errors.tel.message}</p>
                       )}
                     </div>
-                    <div className="space-y-2 pl-8">
+                  </div>
+                </div>
+
+                <Separator orientation="vertical" className="mr-10" />
+
+                <div className="flex flex-col gap-4 min-w-[500px]">
+                  <div><h1 className="text-lg font-semibold mb-6">{t('Informações do Pedido')}</h1></div>
+                  <div className="">
+                    <div className="flex gap-4 pl-7  items-center">
+                      <label className="text-black block pb-2">{t('Escolha um pedido')}</label>
+                      <input
+                        className="border-gray-300 border-2 rounded-md h-8 min-w-[300px] pl-2"
+                        type="text"
+                        placeholder="Pesquisar Pedido"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                      />
+                    </div>
+
+                    <table className="table min-w-[700px]">
+                      <thead>
+                        <tr>
+                          <th>{t('Produto')}</th>
+                          <th>{t('Preço')}</th>
+                          <th>{t('Quantidade')}</th>
+                          <th>{t('Ações')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentItems.map((product) => (
+                          <tr key={product.id}>
+                            <td>{product.name}</td>
+                            <td>{t('R$')} {product.salePrice.toFixed(2)}</td>
+                            <td>
+                              {product.stockQuant} <span className="text-xs">{t('unidades')}</span>
+                            </td>
+                            <td>
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => removerPedido(product.id)}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => adicionarPedido(product.id)}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    <div className="flex justify-center ">
+                      <Pagination className="">
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious href="#" onClick={prevPage}>{t('Anterior')}</PaginationPrevious>
+                          </PaginationItem>
+                          {Array.from({ length: totalPages }, (_, index) => (
+                            <PaginationItem key={index}>
+                              <PaginationLink href="#" onClick={() => setPage(index + 1)} isActive={currentPage === index + 1}>
+                                {index + 1}
+                              </PaginationLink>
+                            </PaginationItem>
+
+                          ))}
+                          <PaginationItem>
+                            <PaginationNext href="#" onClick={nextPage}>{t('Próximo')}</PaginationNext>
+                          </PaginationItem>
+
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 flex flex-col w-full ">
+                    <label className='text-black'>{t('Instruções Especiais: ')}</label>
+                    <textarea
+                      className="textarea textarea-bordered bg-gray-100 text-black max-h-[100px]"
+                      placeholder="Caso exista, informe alguma instrução"
+                      {...register('instrucoes')}
+                    ></textarea>
+                  </div>
+
+                  <div className="flex flex-row gap-2">
+                    <div className="space-y-2 flex flex-col 
+                    ">
                       <label className='text-black'>{t('Entregador: ')}</label>
                       <input
                         placeholder='Nome do entregador'
@@ -503,47 +641,53 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         <p className='text-sm text-red-400'>{errors.entregador.message}</p>
                       )}
                     </div>
-
-
+                    <div className="space-y-2  flex flex-col">
+                      <label className='text-black'>{t('Informações do Pagamento: ')}</label>
+                      <select
+                        className="select w-full max-w-xs bg-gray-100 text-black rounded-lg"
+                        {...register('metodo_pag')}
+                        defaultValue=""
+                      >
+                        <option value="" disabled selected>{t('Selecione a forma de pagamento')}</option>
+                        <option value={"credito"}>{t('Cartão de Crédito')}</option>
+                        <option value={"debito"}>{t('Cartão de Débito')}</option>
+                        <option value={"pix"}>{t('PIX')}</option>
+                        <option value={"na_entrega"}>{t('Na Entrega')}</option>
+                      </select>
+                      {errors.metodo_pag?.message && (
+                        <p className='text-sm text-red-400'>{errors.metodo_pag.message}</p>
+                      )}
+                    </div>
 
                   </div>
+                  <div className="space-y-2 flex flex-col w-full min-h-[100px] max-h-[150px] overflow-y-auto bg-gray-100 rounded-lg p-2 text-black">
+                    <label className="text-black">{t('Informações do pedido: ')}</label>
+
+                    <ul className="list-disc list-inside">
+                      {pedidos.map((pedido, index) => (
+                        <li key={index} className="flex items-center">
+                          {pedido.name} {t('- Quantidade:')} {pedido.quantity}
+                          <div className=" flex bg-white p-2 rounded-md items-center justify-center ml-2 cursor-pointer text-red-400 hover:bg-red-400 hover:text-white" onClick={() => deletarPedido(pedido.id)}>
+                            <FaTrash  className=" " />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+
+                  </div>
+                  <span className="font-bold text-right">
+                   {t('Valor Total:')}{valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </span>
+
                 </div>
 
-                <div className='grid grid-cols-1 w-full'>
-                  <div className="space-y-2 flex flex-col pl-8 w-full pr-10">
-                    <label className='text-black'>{t('Instruções Especiais: ')}</label>
-                    <textarea
-                      className="textarea textarea-bordered bg-gray-100 text-black max-h-[100px]"
-                      placeholder="Caso exista, informe alguma instrução"
-                      {...register('instrucoes')}
-                    ></textarea>
-                  </div>
-
-                  <div className="space-y-2 pl-8 pt-5">
-                    <select
-                      className="select w-full max-w-xs bg-gray-100 text-black rounded-lg"
-                      {...register('metodo_pag')}
-                      defaultValue=""
-                    >
-                      <option value="" disabled selected>{t('Selecione a forma de pagamento')}</option>
-                      <option value={"credito"}>{t('Cartão de Crédito')}</option>
-                      <option value={"debito"}>{t('Cartão de Débito')}</option>
-                      <option value={"pix"}>{t('PIX')}</option>
-                      <option value={"na_entrega"}>{t('Na Entrega')}</option>
-                    </select>
-                    {errors.metodo_pag?.message && (
-                      <p className='text-sm text-red-400'>{errors.metodo_pag.message}</p>
-                    )}
-                  </div>
 
 
-
-                </div>
 
 
               </div>
 
-              <div className='p-5 flex justify-end'>
+              <div className='p-5 flex justify-end mt-10'>
                 <Button
                   variant='destructive'
                 >
