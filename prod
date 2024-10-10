@@ -1,0 +1,5 @@
+
+> saas-starter-kit@1.4.5 build
+> prisma generate && prisma db push && next build
+
+Deseja finalizar o arquivo em lotes (S/N)? 
