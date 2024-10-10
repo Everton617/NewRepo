@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         valor: true,             
         data: true,              
         horario: true,           
-        entregador: true,    
+        nomeentregador: true,    
         status: true,            
       },
     });
