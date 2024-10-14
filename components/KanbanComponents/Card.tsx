@@ -6,18 +6,7 @@ import { useTranslation } from 'next-i18next';
 import { ptBR } from 'date-fns/locale';
 import { format } from 'date-fns';
 import { Button } from "../ui/button";
-import { IoTrashSharp } from "react-icons/io5";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
 import {
   Drawer,
@@ -84,7 +73,7 @@ export type CardType = {
   metodo_pag: string;
   instrucoes: string;
   motivo_cancelamento: string;
-  onDelete: (id) => void;
+  
 };
 
 const Card: FC<CardType> = ({ id,
@@ -103,7 +92,7 @@ const Card: FC<CardType> = ({ id,
   metodo_pag,
   instrucoes,
   motivo_cancelamento,
-  onDelete
+  
 }) => {
   // useSortableに指定するidは一意になるよう設定する必要があります。s
   const { t } = useTranslation('common');
@@ -240,22 +229,7 @@ const Card: FC<CardType> = ({ id,
       </div>
       <div>
         <div onClick={handleClick} className="pr-2">
-          <AlertDialog>
-            <AlertDialogTrigger>
-              <Button className="w-[35px] text-center bg-white border border-black-100 text-red-400 hover:bg-red-400 hover:text-white">
-                <IoTrashSharp className="min-w-[20px]" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t('Deseja excluir este pedido?')}</AlertDialogTitle>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{t('Cancelar')}</AlertDialogCancel>
-                <AlertDialogAction className="bg-red-400 hover:bg-white hover:text-red-400 hover:border-red-400 hover:border" onClick={() => onDelete(id)}>{t('Confirmar')}</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+         
         </div>
         <div>
           <Drawer>

@@ -151,25 +151,6 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
   }, [items]);
 
 
-  const handleDelete = async (id) => {
-    console.log('deletando', id);
-    try {
-      const response = await fetch(`/api/teams/${slug}/order`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: id }),
-      });
-      if (!response.ok) {
-        throw new Error('Erro ao excluir o pedido');
-      }
-      toast.success('Pedido excluído com sucesso');
-      await fetchItemFromAPI(); // Atualiza a lista de pedidos após a exclusão  
-    } catch (error) {
-      console.error('Erro ao excluir o pedido:', error);
-      toast.error('Erro ao excluir o pedido');
-    }
-  };
-
 
   const handleCEPChange = async (event) => {
     const cep = event.target.value;
@@ -458,7 +439,6 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
             metodo_pag={card.metodo_pag}
             instrucoes={card.instrucoes}
             motivo_cancelamento={card.motivo_cancelamento}
-            onDelete={() => handleDelete(card.id)}
           />
         ))}
       </div>
