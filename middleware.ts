@@ -22,7 +22,8 @@ const unAuthenticatedRoutes = [
   '/unlock-account',
   '/login/saml',
   '/.well-known/*',
-  '/api/ex_routes/orders'
+  '/api/ex_routes/orders',
+  '/api/ex_routes/inventory'
 ];
 
 export default async function middleware(req: NextRequest) {
