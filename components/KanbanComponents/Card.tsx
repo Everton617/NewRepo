@@ -7,7 +7,6 @@ import { ptBR } from 'date-fns/locale';
 import { format } from 'date-fns';
 import { Button } from "../ui/button";
 
-
 import {
   Drawer,
   DrawerClose,
@@ -189,7 +188,6 @@ const Card: FC<CardType> = ({ id,
 
 
   return (
-
     // attributes、listenersはDOMイベントを検知するために利用します。
     // listenersを任意の領域に付与することで、ドラッグするためのハンドルを作ることもできます。
     <div className={`flex items-center`}>

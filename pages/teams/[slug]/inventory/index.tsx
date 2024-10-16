@@ -18,7 +18,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +25,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
 import {
   Dialog,
   DialogContent,
@@ -35,7 +33,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-
 import {
   Pagination,
   PaginationContent,
@@ -113,8 +110,8 @@ export default function Component() {
     imageUrl: string;
     code: string;
     description: string;
-    purchasePrice: number;
-    salePrice: number;
+    purchasePrice: string;
+    salePrice: string;
     stockQuant: number;
     supplier: string;
     unitOfMeasure: string;
@@ -304,23 +301,21 @@ export default function Component() {
         value => !String(value).includes('-')
       ),
     unitOfMeasure: Yup.string(),
-    purchasePrice: Yup.number()
-      .typeError('Por favor preencha com um número')
-      .moreThan(0, 'O número deve ser maior que 0')
-      .test(
-        'no-hyphen',
-        'O número não deve conter hífens',
-        value => !String(value).includes('-')
-      ),
-    salePrice: Yup.number()
-    .typeError('Por favor preencha com um número')
-    .required('Por favor preencha este campo')
-    .moreThan(0, 'O número deve ser maior que 0')
-    .test(
-      'no-hyphen',
-      'O número não deve conter hífens',
-      value => !String(value).includes('-')
-    ),
+    purchasePrice: Yup.string()
+      .matches(/^\d+(?:,\d{1,2})?$/, 'Formato inválido. Use vírgula para separar decimais')
+      .test('is-decimal', 'Valor inválido', value => {
+        if (!value) return true
+        const numberValue = Number(value.replace(',', '.'))
+        return !isNaN(numberValue) && numberValue > 0
+      }),
+    salePrice: Yup.string()
+      .matches(/^\d+(?:,\d{1,2})?$/, 'Formato inválido. Use vírgula para separar decimais')
+      .test('is-decimal', 'Valor inválido', value => {
+        if (!value) return true
+        const numberValue = Number(value.replace(',', '.'))
+        return !isNaN(numberValue) && numberValue > 0
+      })
+      .required('O Preço de venda do produto é obrigatório'),
     supplier: Yup.string(),
     imageUrl: Yup.string(),
   });
@@ -580,8 +575,8 @@ export default function Component() {
       description: data.description,
       stockQuant: Number(data.stockQuant),
       unitOfMeasure: data.unitOfMeasure,
-      purchasePrice: Number(data.purchasePrice),
-      salePrice: Number(data.salePrice),
+      purchasePrice: data.purchasePrice,
+      salePrice: data.salePrice,
       supplier: data.supplier,
       imageUrl: data.imageUrl,
     };
@@ -594,6 +589,7 @@ export default function Component() {
 
     if(!formCategoriaId){
       toast.error('Por favor escolha uma categoria')
+      return;
     }
 
     try {
@@ -650,8 +646,8 @@ export default function Component() {
         description: data.description,
         stockQuant: Number(data.stockQuant),
         unitOfMeasure: data.unitOfMeasure,
-        purchasePrice: Number(data.purchasePrice),
-        salePrice: Number(data.salePrice),
+        purchasePrice: data.purchasePrice,
+        salePrice: data.salePrice,
         supplier: data.supplier,
         imageUrl: data.imageUrl,
       };
@@ -681,10 +677,9 @@ export default function Component() {
         throw new Error('Erro ao atualizar produto');
       }
 
-      
       toast.success('Produto atualizado com sucesso!');
-      onUpdateSuccess()
-      reset()
+      onUpdateSuccess();
+      reset();
     } catch (error) {
       toast.error('Erro ao atualizar o produto');
     }
@@ -930,7 +925,7 @@ export default function Component() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">{t('Descrição')}</Label>
-                  <Textarea maxLength={40} id="description" className="max-h-[120px]" rows={3} {...register('description')} />
+                  <Textarea maxLength={1000} id="description" className="max-h-[120px]" rows={3} {...register('description')} />
                   {errors.description && <span className="text-red-500 text-[12px]">{errors.description.message}</span>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -948,12 +943,12 @@ export default function Component() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="purchasePrice">{t('Preço de compra')}</Label>
-                    <Input id="purchasePrice" type="number" {...register('purchasePrice')} />
+                    <Input id="purchasePrice" type="text" {...register('purchasePrice')} />
                     {errors.purchasePrice && <span className="text-red-500 text-[12px]">{errors.purchasePrice.message}</span>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="salePrice">{t('Preço de venda')}</Label>
-                    <Input id="salePrice" type="number" {...register('salePrice', { required: 'O Preço de venda do produto é obrigatório' })} />
+                    <Input id="salePrice" type="text" {...register('salePrice', { required: 'O Preço de venda do produto é obrigatório' })} />
                     {errors.salePrice && <span className="text-red-500 text-[12px]">{errors.salePrice.message}</span>}
                   </div>
                 </div>
@@ -1155,8 +1150,8 @@ export default function Component() {
                     <TableCell>{item.stockQuant}
                     </TableCell>
                     <TableCell>{item.unitOfMeasure}</TableCell>
-                    <TableCell>{t('R$')} {Number(item.purchasePrice).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                    <TableCell>{t('R$')} {Number(item.salePrice).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell>{t('R$')} {String(item.purchasePrice)}</TableCell>
+                    <TableCell>{t('R$')} {String(item.salePrice)}</TableCell>
                     <TableCell>{item.supplier}</TableCell>
                     <TableCell>
                       <Popover>
@@ -1260,7 +1255,7 @@ export default function Component() {
                                   </div>
                                   <div className="space-y-2">
                                     <Label htmlFor="description">{t('Descrição')}</Label>
-                                    <Textarea maxLength={40}
+                                    <Textarea maxLength={1000}
                                       id="description"
                                       className="max-h-[120px]"
                                       rows={3}
@@ -1293,7 +1288,7 @@ export default function Component() {
                                       <Label htmlFor="purchasePrice">{t('Preço de compra')}</Label>
                                       <Input
                                         id="purchasePrice"
-                                        type="number"
+                                        type="text"
                                         {...register('purchasePrice')}
                                         defaultValue={selectedProduct?.purchasePrice || ''} />
                                         {errors.purchasePrice && <span className="text-red-500 text-[12px]">{errors.purchasePrice.message}</span>}
@@ -1302,7 +1297,7 @@ export default function Component() {
                                       <Label htmlFor="salePrice">{t('Preço de venda')}</Label>
                                       <Input
                                         id="salePrice"
-                                        type="number"
+                                        type="text"
                                         {...register('salePrice', { required: 'O Preço de venda do produto é obrigatório' })}
                                         defaultValue={selectedProduct?.salePrice || ''} />
                                       {errors.salePrice && <span className="text-red-500 text-[12px]">{errors.salePrice.message}</span>}

@@ -12,6 +12,10 @@ import { GetServerSideProps } from "next";
 
 import nookies from 'nookies';
 
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)
+  }
+
 
 
 
@@ -81,7 +85,7 @@ const DashBoardDisplay = () => {
                         <CiDollar className="h-7 w-7 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$1,234.56</div>
+                        <div className="text-2xl font-bold">{formatCurrency(1237)}</div>
                         <p className="text-xs text-muted-foreground">
                             {t('10% mês passado')}
                         </p>
@@ -138,7 +142,7 @@ const DashBoardDisplay = () => {
                                 <TableRow key={order.id}>
                                     <TableCell>{order.id}</TableCell>
                                     <TableCell>{order.date}</TableCell>
-                                    <TableCell>${order.total.toFixed(2)}</TableCell>
+                                    <TableCell>{formatCurrency(order.total)}</TableCell>
                                     <TableCell>{order.status}</TableCell>
                                 </TableRow>
                             ))}

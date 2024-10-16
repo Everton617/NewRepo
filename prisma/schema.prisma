@@ -1,18 +1,15 @@
 generator client {
   provider = "prisma-client-js"
 }
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 enum Role {
   ADMIN
   OWNER
   MEMBER
 }
-
 model Account {
   id                String  @id @default(uuid())
   userId            String
@@ -285,8 +282,8 @@ model InventoryProduct {
   imageUrl         String?
   code             String?            @unique
   description      String?
-  purchasePrice    Float?
-  salePrice        Float
+  purchasePrice     String? 
+  salePrice        String?     
   stockQuant       Int
   unitOfMeasure    String?
   supplier         String?
@@ -334,7 +331,6 @@ model PasswordReset {
   updatedAt DateTime @updatedAt
   expiresAt DateTime
 }
-
 model ApiKey {
   id         String    @id @default(uuid())
   name       String
@@ -374,7 +370,6 @@ model Service {
   updatedAt   DateTime @default(now())
   Price       Price[]
 }
-
 model Price {
   id            String   @id @default(uuid())
   billingScheme String

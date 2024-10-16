@@ -6,8 +6,8 @@ export const inventoryProductSchema = z.object({
     code: z.string().optional(),
     description: z.string().optional(),
 
-    purchasePrice: z.number().optional(),
-    salePrice: z.number(),
+    purchasePrice: z.string().optional(),
+    salePrice: z.string(),
 
     stockQuant: z.number(),
     unitOfMeasure: z.string().optional(),

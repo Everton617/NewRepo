@@ -46,7 +46,10 @@ export default async function middleware(req: NextRequest) {
     if (!token) {
       return NextResponse.redirect(redirectUrl);
     }
-    
+  }
+
+  // Database strategy
+  else if (env.nextAuth.sessionStrategy === 'database') {
     const url = new URL('/api/auth/session', req.url);
 
     const response = await fetch(url, {
