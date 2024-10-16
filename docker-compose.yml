@@ -21,3 +21,16 @@ services:
       AUTHENTICATION_API_KEY: salve
       WEBSOCKET_ENABLED: true
       WEBSOCKET_GLOBAL_EVENTS: true
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4002:4002"
+    restart: always
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://postgres:cf8fd9514a7abcbae700@servidor.qu1ck.com.br:5435/qu1ck-internnal
+    depends_on:
+      - db

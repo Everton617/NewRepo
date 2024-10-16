@@ -91,10 +91,11 @@ export default function App() {
 
   const [isDraggingDisabled, setIsDraggingDisabled] = useState(false);
 
+
   async function fetchItemFromAPI(slug) {
 
     try {
-      const response = await fetch(`/api/teams/${slug}/order`, {
+      const response = await fetch(`/api/teams/${slug}/orderGestor`, {
         method: "GET",
         headers: { "content-type": "application/json" },
       });
@@ -124,7 +125,7 @@ export default function App() {
         setColumns(updatedContainers);
       } else {
         toast.error('Failed to fetch orders');
-        console.error('Data fetched is not an array:', data?.orders);
+        console.error('Data fetched is not an array:', data);
       }
 
     };
@@ -133,12 +134,10 @@ export default function App() {
   }, [slug]);
 
 
-
   const findColumn = (unique: string | null) => {
     if (!unique) {
       return null;
     }
-    // overの対象がcolumnの場合があるためそのままidを返す
     if (columns.some((c) => c.id === unique)) {
       return columns.find((c) => c.id === unique) ?? null;
     }
@@ -196,6 +195,26 @@ export default function App() {
     });
   };
 
+  const getUniqueOrder = async (orderId: any) => {
+    const { slug } = router.query
+    try{
+      const response = await fetch(`/api/teams/${slug}/order/${orderId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if(!response.ok){
+        throw new Error('Failed to get unique order')
+      }
+
+      return await response.json();
+    }catch(error){
+      console.error('Failed to get unique order:', error);
+    }
+  }
+
   
   const updateOrderStatus = async (orderId, newStatus) => {
     const { slug } = router.query;
@@ -215,6 +234,10 @@ export default function App() {
       if (!response.ok) {
         throw new Error('Failed to update order status');
       }
+      
+      if(response.ok && newStatus == "CONCLUIDO"){
+        const order = await getUniqueOrder(orderId)
+      }
 
       const data = await response.json();
       console.log('Order status updated:', data);
@@ -222,19 +245,18 @@ export default function App() {
       console.error('Failed to update order status:', error);
     }
   };
-  
+
   const handleDragEnd = async (event: DragEndEvent) => {
     
     const { active, over } = event;
-    
+
     const activeId = String(active.id);
-    const overId = over && over.data && over.data.current && over.data.current.sortable   
-    ? String(over.data.current.sortable.containerId)   
-    : null;
+    const overId = over && over.data && over.data.current && over.data.current.sortable
+      ? String(over.data.current.sortable.containerId)
+      : null;
     const activeColumn = findColumn(activeId);
     const overColumn = findColumn(overId);
 
-    // Se não encontrar as colunas ou as colunas forem diferentes, não faz nada  
     if (!activeColumn || !overColumn || activeColumn !== overColumn) {
       return;
     }
@@ -244,7 +266,6 @@ export default function App() {
     const itemToMove = activeColumn.items[activeIndex];
     const newStatus = overColumn.title;
 
-    // Só atualiza se houver mudança na posição  
     if (activeIndex !== overIndex) {
       try {
         setIsDraggingDisabled(true);
@@ -278,20 +299,16 @@ export default function App() {
         }, 5000);
       } catch (error) {
         console.error('Error updating order status or columns:', error);
-        // Opcional: adicionar lógica de fallback ou notificação ao usuário  
       }
     }
   };
- 
-  const sensors = useSensors(
 
+  const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates
     })
   );
- 
- 
   return (
     
     <DndContext

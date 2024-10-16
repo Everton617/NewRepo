@@ -20,7 +20,7 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -48,7 +48,9 @@
     "**/*.tsx",
     "next-auth.d.ts",
     "types/global.d.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "pages/**/*.ts",
+    "pages/**/*.tsx"
   ],
   "exclude": [
     "node_modules"

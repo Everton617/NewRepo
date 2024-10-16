@@ -393,8 +393,9 @@ export const getAuthOptions = (
             maxLengthPolicies.name
           );
         }
-
+        console.log(session)
         return session;
+        
       },
 
       async jwt({ token, trigger, session, account }) {

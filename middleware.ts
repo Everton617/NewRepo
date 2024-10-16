@@ -35,7 +35,6 @@ export default async function middleware(req: NextRequest) {
   const redirectUrl = new URL('/auth/login', req.url);
   redirectUrl.searchParams.set('callbackUrl', encodeURI(req.url));
 
-
   // JWT strategy
   if (env.nextAuth.sessionStrategy === 'jwt') {
     const token = await getToken({

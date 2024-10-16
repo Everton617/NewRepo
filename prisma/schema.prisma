@@ -1,18 +1,15 @@
 generator client {
   provider = "prisma-client-js"
 }
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 enum Role {
   ADMIN
   OWNER
   MEMBER
 }
-
 model Account {
   id                String  @id @default(uuid())
   userId            String
@@ -26,8 +23,7 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -52,9 +48,9 @@ model VerificationToken {
 }
 
 model User {
-  id                     String    @id @default(uuid())
+  id                     String       @id @default(uuid())
   name                   String
-  email                  String    @unique
+  email                  String       @unique
   emailVerified          DateTime?
   password               String?
   telephone              String
@@ -67,16 +63,15 @@ model User {
   image                  String?
   billingId              String?
   billingProvider        String?
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @default(now())
-  invalid_login_attempts Int       @default(0)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @default(now())
+  invalid_login_attempts Int          @default(0)
   lockedAt               DateTime?
-
-  teamMembers TeamMember[]
-  accounts    Account[]
-  sessions    Session[]
-  invitations Invitation[]
-  Order       Order[]
+  teamMembers            TeamMember[]
+  accounts               Account[]
+  sessions               Session[]
+  invitations            Invitation[]
+  Order                  Order[]
 }
 
 model Team {
@@ -112,102 +107,62 @@ model Team {
 }
 
 model TeamContact {
-  id String @id @default(uuid())
-
-  name    String
-  cep     String?
-  address String?
-  cidade  String?
-  estado  String?
-  country String?
-  DDD     String?
-  phone   String?
-  wpp     String?
-  obs     String?
-
-  emp_nome    String?
-  cnpj        String?
-  emp_address String?
-  emp_cidade  String?
-  emp_estado  String?
-  emp_country String?
-  emp_DDD     String?
-  emp_phone   String?
-
-  evoId String?
-
-  teamId String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-
+  id           String         @id @default(uuid())
+  name         String
+  address      String?
+  cidade       String?
+  estado       String?
+  country      String?
+  DDD          String?
+  phone        String?
+  wpp          String?
+  obs          String?
+  emp_nome     String?
+  cnpj         String?
+  emp_address  String?
+  emp_cidade   String?
+  emp_estado   String?
+  emp_country  String?
+  emp_DDD      String?
+  emp_phone    String?
+  evoId        String?
+  teamId       String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  team         Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   ContactLabel ContactLabel[]
 }
 
 model Label {
-  id    String @id @default(uuid())
-  name  String
-  emoji String?
-
-  teamId String
-
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-
+  id           String         @id @default(uuid())
+  name         String
+  emoji        String?
+  teamId       String
+  team         Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   ContactLabel ContactLabel[]
 }
 
 model ContactLabel {
-  id        String @id @default(uuid())
-  labelId   String
-  contactId String
-
-  teamId String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id          String      @id @default(uuid())
+  labelId     String
+  contactId   String
+  teamId      String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
   label       Label       @relation(fields: [labelId], references: [id], onDelete: Cascade)
   teamContact TeamContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
 }
 
-model InventoryProduct {
-  id     String @id @default(uuid())
-  teamId String
-
-  name        String
-  imageUrl    String?
-  code        String? @unique
-  description String?
-
-  purchasePrice Float?
-  salePrice     Float
-
-  stockQuant    Int
-  unitOfMeasure String?
-  supplier      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  team             Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  Category_Product Category_Product[]
-}
-
 model InventoryCategory {
-  id     String @id @default(uuid())
-  teamId String
-  name   String
-
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                   String                 @id @default(uuid())
+  teamId               String
+  name                 String
+  team                 Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
   Category_Product     Category_Product[]
   Category_SubCategory Category_SubCategory[]
 
@@ -215,68 +170,56 @@ model InventoryCategory {
 }
 
 model Category_Product {
-  id         String @id @default(uuid())
-  teamId     String
-  productId  String
-  categoryId String
-
-  team     Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  product  InventoryProduct  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  category InventoryCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                           String                         @id @default(uuid())
+  teamId                       String
+  productId                    String
+  categoryId                   String
+  team                         Team                           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  product                      InventoryProduct               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category                     InventoryCategory              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime                       @updatedAt
   Category_SubCategory_Product Category_SubCategory_Product[]
 
   @@unique([productId, categoryId])
 }
 
 model Category_SubCategory {
-  id            String @id @default(uuid())
-  teamId        String
-  categoryId    String
-  subCategoryId String
-
-  team        Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  category    InventoryCategory    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  subcategory InventorySubCategory @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                           String                         @id @default(uuid())
+  teamId                       String
+  categoryId                   String
+  subCategoryId                String
+  team                         Team                           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  category                     InventoryCategory              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  subcategory                  InventorySubCategory           @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime                       @updatedAt
   Category_SubCategory_Product Category_SubCategory_Product[]
 
   @@unique([categoryId, subCategoryId])
 }
 
 model Category_SubCategory_Product {
-  id                      String @id @default(uuid())
+  id                      String               @id @default(uuid())
   teamId                  String
   category_product_id     String
   category_subcategory_id String
-
-  team                 Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  category_product     Category_Product     @relation(fields: [category_product_id], references: [id], onDelete: Cascade)
-  category_subcategory Category_SubCategory @relation(fields: [category_subcategory_id], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  team                    Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  category_product        Category_Product     @relation(fields: [category_product_id], references: [id], onDelete: Cascade)
+  category_subcategory    Category_SubCategory @relation(fields: [category_subcategory_id], references: [id], onDelete: Cascade)
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
 
   @@unique([category_product_id, category_subcategory_id])
 }
 
 model InventorySubCategory {
-  id     String @id @default(uuid())
-  teamId String
-
-  name String
-
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                   String                 @id @default(uuid())
+  teamId               String
+  name                 String
+  team                 Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
   Category_SubCategory Category_SubCategory[]
 
   @@unique([teamId, name])
@@ -289,9 +232,8 @@ model TeamMember {
   role      Role     @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
   @@index([userId])
@@ -302,62 +244,65 @@ enum OrderStatus {
   ANDAMENTO
   ENTREGA
   CONCLUIDO
+  CANCELADO
 }
 
 model Order {
-  id          String      @id @default(uuid())
-  pedido      String[]
+  id                  String      @id @default(uuid())
+  status              OrderStatus @default(BACKLOG)
+  entregador          String
+  nome                String
+  rua                 String
+  horario             DateTime
+  numero              String
+  complemento         String
+  cep                 String
+  cidade              String
+  estado              String
+  valor               Int
+  tel                 String
+  metodo_pag          String
+  instrucoes          String
+  createdBy           String
+  teamId              String
+  userId              String
+  motivo_cancelamento String      @default("undefined")
+  historico           historico[]
+  team                Team        @relation(fields: [teamId], references: [id])
+  user                User        @relation(fields: [userId], references: [id])
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  orderItems          OrderItem[]
+}
+
+model InventoryProduct {
+  id               String             @id @default(uuid())
+  teamId           String
+  name             String
+  imageUrl         String?
+  code             String?            @unique
+  description      String?
+  purchasePrice     String? 
+  salePrice        String?     
+  stockQuant       Int
+  unitOfMeasure    String?
+  supplier         String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  team             Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  Category_Product Category_Product[]
+  orderItems       OrderItem[]
+}
+
+model OrderItem { 
+  id          String     @id @default(uuid())
+  orderId     String     @default(uuid())
+  productId   String     @default(uuid())
   quantidade  Int
-  status      OrderStatus @default(BACKLOG)
-  horario     DateTime
-  entregador  String
-  rua         String
-  numero      String
-  complemento String
-  cep         String
-  cidade      String
-  estado      String
-  tel         String
-  metodo_pag  String
-  instrucoes  String
-  createdBy   String
-  teamId      String
-  userId      String
-  motivo_cancelamento String @default("undefined")
-
-  OrderItem OrderItem[]
-  historico                    historico[]
-
-  team Team @relation(fields: [teamId], references: [id])
-  user User @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  order       Order   @relation(fields: [orderId], references: [id])
+  inventoryProduct    InventoryProduct   @relation(fields: [productId], references: [id])
 }
 
-model OrderItem {
-  id         String @id
-  itemId     String
-  quantidade Int
-  instrucoes String
-
-  item Item @relation(fields: [itemId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  Order     Order    @relation(fields: [orderId], references: [id])
-  orderId   String
-}
-
-model Item {
-  id   String @id @default(uuid())
-  code String @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
-  OrderItem OrderItem[]
-}
 
 model Invitation {
   id             String   @id @default(uuid())
@@ -371,9 +316,8 @@ model Invitation {
   updatedAt      DateTime @default(now())
   sentViaEmail   Boolean  @default(true)
   allowedDomains String[] @default([])
-
-  user User @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+  team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, email])
   @@index([email])
@@ -387,7 +331,6 @@ model PasswordReset {
   updatedAt DateTime @updatedAt
   expiresAt DateTime
 }
-
 model ApiKey {
   id         String    @id @default(uuid())
   name       String
@@ -397,8 +340,7 @@ model ApiKey {
   updatedAt  DateTime  @default(now())
   expiresAt  DateTime?
   lastUsedAt DateTime?
-
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team       Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([teamId])
 }
@@ -428,7 +370,6 @@ model Service {
   updatedAt   DateTime @default(now())
   Price       Price[]
 }
-
 model Price {
   id            String   @id @default(uuid())
   billingScheme String
@@ -438,8 +379,7 @@ model Price {
   metadata      Json
   type          String
   created       DateTime
-
-  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 }
 
 model historico {
@@ -453,23 +393,20 @@ model historico {
   orderId          String
   teamId           String
   status           String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-  Order     Order  @relation(fields: [orderId], references: [id])
-  Team     Team   @relation(fields: [teamId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now())
+  Order            Order    @relation(fields: [orderId], references: [id])
+  Team             Team     @relation(fields: [teamId], references: [id])
 }
 
-
-
 model jackson_store {
-  key        String    @id(map: "_jackson_store_key") @db.VarChar(1500)
-  value      String
-  iv         String?   @db.VarChar(64)
-  tag        String?   @db.VarChar(64)
-  createdAt  DateTime  @default(now()) @db.Timestamp(6)
-  modifiedAt DateTime? @db.Timestamp(6)
-  namespace  String?   @db.VarChar(256)
-
+  key           String          @id(map: "_jackson_store_key") @db.VarChar(1500)
+  value         String
+  iv            String?         @db.VarChar(64)
+  tag           String?         @db.VarChar(64)
+  createdAt     DateTime        @default(now()) @db.Timestamp(6)
+  modifiedAt    DateTime?       @db.Timestamp(6)
+  namespace     String?         @db.VarChar(256)
   jackson_index jackson_index[]
 
   @@index([namespace], map: "_jackson_store_namespace")
@@ -477,11 +414,10 @@ model jackson_store {
 }
 
 model jackson_index {
-  id       Int    @id(map: "_jackson_index_id") @default(autoincrement())
-  key      String @db.VarChar(1500)
-  storeKey String @db.VarChar(1500)
-
-  store jackson_store @relation(fields: [storeKey], references: [key], onDelete: Cascade, onUpdate: NoAction)
+  id       Int           @id(map: "_jackson_index_id") @default(autoincrement())
+  key      String        @db.VarChar(1500)
+  storeKey String        @db.VarChar(1500)
+  store    jackson_store @relation(fields: [storeKey], references: [key], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([key], map: "_jackson_index_key")
   @@index([key, storeKey], map: "_jackson_index_key_store")
@@ -496,3 +432,26 @@ model jackson_ttl {
   @@ignore
 }
 
+model DeliveryDriver {
+  id                  Int      @id @default(autoincrement())
+  fullName            String
+  email               String   @unique
+  phone               String
+  address             String
+  city                String
+  state               String
+  vehicleModel        String
+  licensePlate        String   @unique
+  vehicleType         String
+  startTime           String
+  endTime             String
+  availableDays       String
+  photoUrl            String
+  idUrl               String
+  proofOfResidenceUrl String
+  vehicleDocumentUrl  String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("deliverydriver")
+}

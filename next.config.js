@@ -31,7 +31,6 @@ const nextConfig = {
         source: '/.well-known/saml-configuration',
         destination: '/well-known/saml-configuration',
       },
-      
     ];
   },
   async headers() {

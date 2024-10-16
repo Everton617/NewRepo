@@ -23,24 +23,33 @@ interface NavigationItemProps {
   className?: string;
 }
 
+
 const NavigationItems = ({ menus }: NavigationItemsProps) => {
+ 
+  
+
+
   return (
-    <ul role="list" className="flex flex-1 flex-col gap-1 ">
-      {menus.map((menu) => (
-        <li key={menu.name}>
-          <NavigationItem menu={menu} />
-          {menu.items && (
-            <ul className="flex flex-col gap-1 mt-1 ">
-              {menu.items.map((subitem) => (
-                <li key={subitem.name}>
-                  <NavigationItem menu={subitem} className="pl-9" />
-                </li>
-              ))}
-            </ul>
-          )}
-        </li>
-      ))}
-    </ul>
+    <div>
+      <ul role="list" className="flex flex-1 flex-col gap-1 ">
+        {menus.map((menu) => (
+          <li key={menu.name}>
+            <NavigationItem menu={menu} />
+            {menu.items && (
+              <ul className="flex flex-col gap-1 mt-1 ">
+                {menu.items.map((subitem) => (
+                  <li key={subitem.name}>
+                    <NavigationItem menu={subitem} className="pl-9" />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      
+    </div>
   );
 };
 
@@ -48,9 +57,8 @@ const NavigationItem = ({ menu, className }: NavigationItemProps) => {
   return (
     <Link
       href={menu.href}
-      className={`group flex items-center rounded text-sm text-gray-900 hover:bg-red-400 hover:text-white dark:text-gray-100 dark:hover:text-gray-100 dark:hover:bg-gray-800 px-2 p-2 gap-2 ${
-        menu.active ? 'text-white bg-red-400 font-semibold' : ''
-      }${className}`}
+      className={`group flex items-center rounded text-sm text-gray-900 hover:bg-red-400 hover:text-white dark:text-gray-100 dark:hover:text-gray-100 dark:hover:bg-gray-800 px-2 p-2 gap-2 ${menu.active ? 'text-white bg-red-400 font-semibold' : ''
+        }${className}`}
     >
       {menu.icon && (
         <menu.icon

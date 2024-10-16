@@ -5,6 +5,7 @@ export enum StatusPedido {
     ANDAMENTO = "Em Processo",
     ENTREGA = "Saiu para entrega",
     CONCLUIDO = "Concluído",
+    CANCELADO = "Cancelado"
     
   }
   
@@ -14,5 +15,6 @@ export enum StatusPedido {
     [StatusPedido.ANDAMENTO]: "Em Processo",
     [StatusPedido.ENTREGA]: "Saiu para entrega",
     [StatusPedido.CONCLUIDO]: "Concluído",
+    [StatusPedido.CANCELADO]: "Cancelado",
   };
   

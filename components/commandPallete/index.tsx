@@ -143,6 +143,14 @@ const CommandPallete = () => {
                       <a href={`/teams/${team.name}/inventory`} className="text-[16px] hover:border-b hover:border-b-2">{t('Estoque')}</a>
                     </div>
                     <div className="flex gap-2">
+                      <ArchiveBoxIcon className="w-6 h-6" />
+                      <a href={`/teams/${team.name}/historic`} className="text-[16px] hover:border-b hover:border-b-2">{t('Histórico')}</a>
+                    </div>
+                    <div className="flex gap-2">
+                      <ArchiveBoxIcon className="w-6 h-6" />
+                      <a href={`/teams/${team.name}/deliveryman`} className="text-[16px] hover:border-b hover:border-b-2">{t('Deliveryman')}</a>
+                    </div>
+                    <div className="flex gap-2">
                       <ChatBubbleOvalLeftEllipsisIcon className="w-5 h-5" />
                       <a href={`/teams/${team.name}/scheduleMsg`} className="text-[16px] hover:border-b hover:border-b-2">{t('Campanhas')}</a>
                     </div>

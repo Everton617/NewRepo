@@ -5,7 +5,6 @@ import { getUniqueOrder, updateOrder } from "models/order";
 import { throwIfNotAllowed } from "models/user";
 import { updateOrderSchema, validateWithSchema } from "@/lib/zod";
 
-
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
@@ -14,6 +13,9 @@ export default async function handler(
         await throwIfNoTeamAccess(req, res);
 
         switch (req.method) {
+            case "GET":
+                await handleGET(req, res);
+                break;
             case "PATCH":
                 await handlePATCH(req, res); // Novo caso para atualizar o status
                 break;
@@ -30,6 +32,16 @@ export default async function handler(
         res.status(status).json({ error: { message } });
     }
 }
+
+async function handleGET(req: NextApiRequest, res: NextApiResponse) {  
+    const user = await getCurrentUserWithTeam(req, res);
+
+    const orderId = req.query.id;
+    const order = await getUniqueOrder(orderId as string, user.team.id);  
+    console.log("got orders successfully");  
+    console.log(order);  
+    return res.status(200).json({ order });  
+}  
 
 async function handlePATCH(req: NextApiRequest, res: NextApiResponse) {
     const user = await getCurrentUserWithTeam(req, res);
@@ -51,17 +63,22 @@ async function handlePATCH(req: NextApiRequest, res: NextApiResponse) {
 async function handlePUT(req: NextApiRequest, res: NextApiResponse) {
     const user = await getCurrentUserWithTeam(req, res);
     throwIfNotAllowed(user, "team_order", "update");
+  
     const orderId = req.query.id;
     const { motivo_cancelamento } = req.body;
+  
     if (!orderId) throw new ApiError(422, "missing required parameter: missing 'id'");
-    if (!motivo_cancelamento) throw new ApiError(422, "missing required parameter: missing 'motivoCancelamento'");
+    if (!motivo_cancelamento) throw new ApiError(422, "missing required parameter: missing 'motivo_cancelamento'");
+  
     if (!await getUniqueOrder(orderId as string, user.team.id)) throw new ApiError(404, "order id not found");
   
-    // Assumindo que você quer atualizar o status do pedido para "cancelado"
     const updatedOrder = await prisma?.order.update({
-        where: { id: orderId as string },
-        data: { motivo_cancelamento },
-      });
+      where: { id: orderId as string },
+      data: { 
+        motivo_cancelamento,
+        status: 'CANCELADO' // atualiza o status para "CANCELADO"
+      },
+    });
   
     return res.status(200).json({ message: "Order canceled successfully", order: updatedOrder });
   }

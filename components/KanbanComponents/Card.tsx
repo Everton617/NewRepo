@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { useSortable } from "@dnd-kit/sortable";
@@ -6,19 +6,6 @@ import { useTranslation } from 'next-i18next';
 import { ptBR } from 'date-fns/locale';
 import { format } from 'date-fns';
 import { Button } from "../ui/button";
-import { IoTrashSharp } from "react-icons/io5";
-
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
 import {
   Drawer,
@@ -31,6 +18,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer"
 
+import { TbClockDown } from "react-icons/tb";
 
 import {
   DropdownMenu,
@@ -53,11 +41,25 @@ import { useRouter } from 'next/router';
 import toast from "react-hot-toast";
 
 
+interface inventoryProduct {
+  name: string;
+  quantidade: number;
+}
+
+interface OrderItem {
+  id: string;
+  inventoryProduct: inventoryProduct;
+  quantidade: number;
+}
+
+
 
 export type CardType = {
   index: number;
   id: UniqueIdentifier;
-  pedido: string[]
+  orderItems: OrderItem[];
+  nome: string;
+  valor: number;
   createdAt: string;
   entregador: string;
   rua: string;
@@ -67,16 +69,17 @@ export type CardType = {
   cidade: string;
   estado: string;
   tel: string;
-  quantidade: number;
   metodo_pag: string;
   instrucoes: string;
   motivo_cancelamento: string;
-  onDelete: (id) => void;
+  
 };
 
 const Card: FC<CardType> = ({ id,
-  pedido,
+  orderItems,
   createdAt,
+  nome,
+  valor,
   entregador,
   rua,
   numero,
@@ -86,10 +89,9 @@ const Card: FC<CardType> = ({ id,
   estado,
   tel,
   metodo_pag,
-  quantidade,
   instrucoes,
   motivo_cancelamento,
-  onDelete
+  
 }) => {
   // useSortableに指定するidは一意になるよう設定する必要があります。s
   const { t } = useTranslation('common');
@@ -102,6 +104,35 @@ const Card: FC<CardType> = ({ id,
 
   const [selectedOption, setSelectedOption] = useState(motivo_cancelamento);
   const [isLoading, setIsLoading] = useState(false);
+  const [orders, setOrders] = useState<CardType[]>();
+
+  async function fetchItemFromAPI() {
+    console.log('atualizando');
+    try {
+      const response = await fetch(`/api/teams/${slug}/order`, {
+        method: "GET",
+        headers: { "content-type": "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      if (Array.isArray(data.orders)) {
+        setOrders(data.orders);
+
+        return data;
+      } else {
+        console.error('Expected an array but got:', JSON.stringify(data.orders, null, 2));
+        console.log("Orders from Prisma:",);
+      }
+
+
+    } catch (error) {
+      console.error('Fetch error:', error);
+      return null;
+    }
+  }
+
 
 
   const handleSelect = async (option: string, pedidoId: UniqueIdentifier) => {
@@ -131,17 +162,23 @@ const Card: FC<CardType> = ({ id,
     }
   };
 
+  useEffect(() => {
+    // Atualiza os pedidos após mudança na opção selecionada
+    fetchItemFromAPI();
+  }, [selectedOption]);
+
   const style = {
     margin: "10px",
-    width: "300px",
+    width: "400px",
     opacity: 1,
+    minHeight: "200px",
     color: "#333",
     background: "white",
     padding: "20px",
     transform: CSS.Transform.toString(transform)
   };
 
-  const formattedDate = format(new Date(createdAt), 'HH:mm:ss dd/MM/yyyy', { locale: ptBR });
+  const formattedDate = format(new Date(createdAt), 'HH:mm dd/MM/yyyy', { locale: ptBR });
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
 
@@ -155,44 +192,41 @@ const Card: FC<CardType> = ({ id,
     <div className={`flex items-center`}>
       <div ref={setNodeRef} {...attributes} {...listeners} style={style} >
         <div className="flex flex-col" {...listeners}>
-          <div className="h-18">
-            <div className='font-bold'>{t('Id do Pedido')}:</div> {id}
+          <div className="flex justify-between items-center">
+            <div className=" bg-green-500 w-fit px-2 rounded-md text-white flex items-center gap-2" >
+              <div title="Valor do pedido" className='text-[16px] font-bold'>{t('R$')} {valor},00</div>
+            </div>
+            <div className="bg-blue-500 w-fit px-2 rounded-md text-white flex items-center gap-2" >
+              <div title="Horário do pedido" className='flex items-center gap-2 text-[16px] font-bold'>
+                <span className="font-bold"><TbClockDown /></span>
+                {formattedDate}</div>
+            </div>
           </div>
-          <div className="h-14">
-            <div className='font-bold'>{t('Pedido')}:</div> {pedido}
+          <div className="">
+            <div className='font-bold '>{t('Id do Pedido')}:</div> <div className="text-sm">{id}</div>
           </div>
-          <div className="h-14">
-            <div className='font-bold'>{t('Quantidade')}:</div> {quantidade}
-          </div>
-          <div className="h-14">
-            <div className='font-bold'>{t('Horário')}:</div> {formattedDate}
-          </div>
-          <div className="h-14">
-            <div className='font-bold'>{t('Entregador')}:</div> {entregador}
+          <div className="">
+            <div className='font-bold'>{t('Itens do Pedido')}:</div>
+            <ul className="text-[16px]">
+              {orderItems?.map((item, index) => (
+                <li key={index} className="flex gap-2 items-center" >
+                  {item.inventoryProduct.name} - <div className="text-sm">{t('quantidade')}: {item?.quantidade}</div>
+                </li>
+              ))}
+            </ul>
+
           </div>
           <div className="h-10">
-            <div className='font-bold'>{t('Instruções')}: </div>{instrucoes}
+            <div className='font-bold'>{t('Nome do Cliente')}:</div> <div className="text-sm">{nome}</div>
+          </div>
+          <div className="h-10">
+            <div className='font-bold'>{t('Instruções')}: </div><div className="text-sm">{instrucoes}</div>
           </div>
         </div>
       </div>
       <div>
         <div onClick={handleClick} className="pr-2">
-          <AlertDialog>
-            <AlertDialogTrigger>
-              <Button className="w-[35px] text-center bg-white border border-black-100 text-red-400 hover:bg-red-400 hover:text-white">
-                <IoTrashSharp className="min-w-[20px]" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t('Deseja excluir este pedido?')}</AlertDialogTitle>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{t('Cancelar')}</AlertDialogCancel>
-                <AlertDialogAction className="bg-red-400 hover:bg-white hover:text-red-400 hover:border-red-400 hover:border" onClick={() => onDelete(id)}>{t('Confirmar')}</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+         
         </div>
         <div>
           <Drawer>
@@ -286,17 +320,24 @@ const Card: FC<CardType> = ({ id,
                       <div className="h-18 text-[15px]">
                         <div className='font-bold text-lg'>{t('Id do Pedido')}:</div> {id}
                       </div>
-                      <div className="h-14 text-[15px]">
-                        <div className='font-bold text-lg'>{t('Pedido')}:</div>
-                        <ul> {/* Lista não ordenada para os itens do pedido */}
-                          {pedido.map((item, index) => (
-                            <li key={index}>{item}</li>
-                          ))}
-                        </ul>
+                      <div className="h-18 text-[15px]">
+                        <div className="">
+                          <div className='font-bold'>{t('Itens do Pedido')}:</div>
+                          <ul className="text-[16px]">
+                            {orderItems?.map((item, index) => (
+                              <li key={index} className="flex gap-2 items-center" >
+                                {item.inventoryProduct.name} - <div className="text-sm">{t('quantidade')}: {item?.quantidade}</div>
+                              </li>
+                            ))}
+                          </ul>
+
+                        </div>
                       </div>
-                      <div className="h-14 text-[15px]">
-                        <div className='font-bold text-lg'>{t('Quantidade')}:</div> {quantidade}
+                      <div className="h-18 text-[15px]">
+                        <div className='font-bold text-lg'>{t('Valor do Pedido')}:</div> <span>{t('R$ ')}{valor},00</span>
                       </div>
+
+                      
                       <div className="h-14 text-[15px]">
                         <div className='font-bold text-lg'>{t('CEP')}:</div> {cep}
                       </div>

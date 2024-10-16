@@ -3,9 +3,9 @@ import { prisma } from "lib/prisma";
 export async function seedProducts(teamId: string) {
     const products = await prisma.inventoryProduct.createManyAndReturn({
         data: [
-            {name: "suco", code: "125", salePrice: 2.9, stockQuant: 2, teamId: teamId},
-            {name: "feijao", salePrice: 2.9, stockQuant: 2, teamId: teamId},
-            {name: "cuzcuz", salePrice: 2.9, stockQuant: 2, teamId: teamId},
+            {name: "suco", code: "125", salePrice: "2.9", stockQuant: 2, teamId: teamId},
+            {name: "feijao", salePrice: "2.9", stockQuant: 2, teamId: teamId},
+            {name: "cuzcuz", salePrice: "2.9", stockQuant: 2, teamId: teamId},
         ]
     });
 

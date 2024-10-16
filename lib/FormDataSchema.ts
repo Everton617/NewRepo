@@ -1,15 +1,9 @@
 import { z } from 'zod'
 
 export const FormDataSchema = z.object({
-  pedido: z.string().nonempty('O pedido é obrigatório.'),
-  quantidade: z.string()
-    .refine((val) => !isNaN(Number(val)), {
-      message: "A quantidade deve ser um número",
-    })
-    .transform((val) => Number(val))
-    .refine((val) => val >= 1, {
-      message: "É necessário que a quantidade seja maior que 0 ",
-    }),
+
+  nome: z.string().nonempty('O nome é obrigatório.'),
+  valor:  z.number().optional(),
   rua: z.string().nonempty('A rua é obrigatória.'),
   numero:  z.string().nonempty('O número é obrigatório.'),
   horario:  z.string().optional(),

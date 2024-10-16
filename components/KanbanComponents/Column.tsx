@@ -52,6 +52,8 @@ interface products {
   quantity: number;
 }
 
+
+
 interface pedido extends products { }
 
 
@@ -78,6 +80,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
   const processForm: SubmitHandler<Inputs> = data => {
     console.log(data);
+    console.log()
     reset();
     onAddItem(data);
     setShowAddItemModal(false);
@@ -110,6 +113,8 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
     }
   }
 
+
+
   const fetchProducts = async () => {
 
     try {
@@ -127,7 +132,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       if (Array.isArray(data.inventoryProducts)) {
         setProducts(data.inventoryProducts);
 
-        console.log(data.inventoryProducts)
+    
       } else {
 
         console.error('Expected an array but got:', data);
@@ -137,31 +142,14 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
     }
   };
 
+
+
   useEffect(() => {
 
     setOrders(items);
     fetchProducts()
   }, [items]);
 
-
-  const handleDelete = async (id) => {
-    console.log('deletando', id);
-    try {
-      const response = await fetch(`/api/teams/${slug}/order`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: id }),
-      });
-      if (!response.ok) {
-        throw new Error('Erro ao excluir o pedido');
-      }
-      toast.success('Pedido excluído com sucesso');
-      await fetchItemFromAPI(); // Atualiza a lista de pedidos após a exclusão  
-    } catch (error) {
-      console.error('Erro ao excluir o pedido:', error);
-      toast.error('Erro ao excluir o pedido');
-    }
-  };
 
 
   const handleCEPChange = async (event) => {
@@ -191,12 +179,9 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
   };
 
   const onAddItem = async (data: Inputs) => {
-    console.log('Adding item:', data);
-    const { quantidade, entregador, numero, complemento, cep, tel, metodo_pag, instrucoes } = data;
-
-    // Converter a string de produtos em um array
-    const produtosArray = products
-
+    
+    const { nome, entregador, numero, complemento, cep, tel, metodo_pag, instrucoes } = data;
+   
     const cepFormatado = cep.replace("-", "");
     const validarCep = async (cep) => {
       const url = `https://viacep.com.br/ws/${cep}/json/`;
@@ -218,13 +203,19 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       console.error('CEP inválido');
       return;
     }
+    const produtosResumo = pedidos.map((produto) => ({
+      productId: produto.id,
+      quantidade: produto.quantity,
+    }));
+
 
     console.log('Container title:', title); // Certifique-se de que 'title' está definido
 
-    // Usar 'produtosArray' em vez de 'pedido' no objeto 'order'
+    
     const order = {
-      pedido: produtosArray, // Agora 'pedido' é um array de produtos
-      quantidade,
+      orderItems: produtosResumo,
+      nome,
+      valor: valorTotal,
       status: title,
       entregador,
       numero,
@@ -241,26 +232,43 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order }),
       });
+      console.log(order)
 
       const data = await response.json();
       console.log("response ==> ", data);
       toast.success('Pedido adicionado com sucesso!');
       fetchItemFromAPI();
+      setPedidos([])
     } catch (error) {
       console.error("error ==> ", error);
       toast.error('Erro ao adicionar o pedido');
     }
   };
 
-
   const showItemModal = () => {
     setShowAddItemModal(true);
   };
 
-  const handleChangeTitle = () => {
+
+  const handleChangeTitle = async () => {
     if (newTitle !== title) {
+      try{
+        const response = await fetch(`/api/teams/${slug}/containers`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            containerId: id,
+            newName: newTitle,
+           }),
+        });
+
+        const data = await response.json();
+        console.log("response ==> ", data);
+      }catch(error){
+        console.log("Error trying to rename Container", error)
+        toast.error("Error trying to rename Container")
+      }
       onClickEdit();
-      console.log(`Título alterado para: ${newTitle}`);
     }
   };
 
@@ -317,6 +325,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
       if (productToAdd) {
         setPedidos([...pedidos, { ...productToAdd, quantity: 1 }]);
+        
       } else {
         // Tratar o caso em que o produto não é encontrado
         console.error("Produto não encontrado!");
@@ -363,13 +372,13 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
         ref={setNodeRef}
         className={`${borderColorClass} ${iconColorClass}`}
         style={{
-          minWidth: "300px",
+          minWidth: "450px",
           background: "rgba(245,247,249,1.00)",
           marginRight: "10px",
           borderRadius: "10px"
         }}
       >
-        <div className="flex justify-between items-center=">
+        <div className="flex justify-between items-center">
           <PlusIcon className={clsx('w-5 h-5 cursor-pointer', iconColorClass)} onClick={showItemModal} />
           <p
             style={{
@@ -392,7 +401,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                 </div>
                 <div className="flex gap-4 flex-col">
                   <Input
-                    id=""
+                    id={id}
                     placeholder="Digite um nome"
                     className="col-span-2 h-6 w-[180px] text-black"
                     value={newTitle}
@@ -414,7 +423,9 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
             index={index}
             key={card.id}
             id={card.id}
-            pedido={card.pedido}
+            nome={card.nome}
+            valor={card.valor}
+            orderItems={card.orderItems}
             createdAt={card.createdAt}
             entregador={card.entregador}
             rua={card.rua}
@@ -424,11 +435,9 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
             cidade={card.cidade}
             estado={card.estado}
             tel={card.tel}
-            quantidade={card.quantidade}
             metodo_pag={card.metodo_pag}
             instrucoes={card.instrucoes}
             motivo_cancelamento={card.motivo_cancelamento}
-            onDelete={() => handleDelete(card.id)}
           />
         ))}
       </div>
@@ -449,11 +458,11 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                       <input
                         placeholder='Insira o nome do destinatário'
                         className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
-                        {...register('cep', { required: 'O CEP é obrigatório.' })}
-                        onChange={handleCEPChange} // Adiciona o evento onChange para buscar dados do CEP
+                        {...register('nome', { required: 'O nome é obrigatório.' })}
+                         // Adiciona o evento onChange para buscar dados do CEP
                       />
-                      {errors.cep?.message && (
-                        <p className='text-sm text-red-400'>{errors.cep.message}</p>
+                      {errors.nome?.message && (
+                        <p className='text-sm text-red-400'>{errors.nome.message}</p>
                       )}
                     </div>
                     <div className="">
@@ -462,7 +471,8 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         placeholder='Insira o cep do destinatário'
                         className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
                         {...register('cep', { required: 'O CEP é obrigatório.' })}
-                        onChange={handleCEPChange} // Adiciona o evento onChange para buscar dados do CEP
+                        onChange={handleCEPChange}
+                        // Adiciona o evento onChange para buscar dados do CEP
                       />
                       {errors.cep?.message && (
                         <p className='text-sm text-red-400'>{errors.cep.message}</p>
@@ -675,8 +685,8 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                     </ul>
 
                   </div>
-                  <span className="font-bold text-right">
-                   {t('Valor Total:')}{valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  <span className="flex flex-row font-bold text-right text-lg">
+                   {t('Valor Total:')}<div className="text-gray-600">{valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
                   </span>
 
                 </div>
