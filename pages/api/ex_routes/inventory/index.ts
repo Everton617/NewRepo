@@ -7,7 +7,7 @@ import { addProductToCategory } from 'models/inventory/category_products';
 import { getManyCategorySubcategories } from 'models/inventory/category_subcategories';
 import { createManyCategory_SubCategory_Product } from 'models/inventory/category_subcategory_products';
 import { createInventoryProduct, getAllInventoryProducts, getInventoryProductByCode } from 'models/inventory/products';
-import { throwIfNotAllowed } from 'models/user';
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getApiKey } from "models/apiKey";
 
@@ -67,10 +67,18 @@ async function handleGET( req: NextApiRequest,
 }
 
 // create a product
-async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
+async function handlePOST(req: NextApiRequest,
+  res: NextApiResponse,
+  apiKey: string) 
+  {
     // pre-condition: a post must be part created as a category child. And optionally as a sub-category child
-    const user = await getCurrentUserWithTeam(req, res);
-    throwIfNotAllowed(user, "team_inventory_product", "create");
+    const apiKeyData = await getApiKey(apiKey); 
+
+    if (!apiKeyData) {
+        return res.status(401).json({ error: { message: "Invalid API key" } });
+      }
+  
+      const { teamId } = apiKeyData;
 
     if (!req.body.product) return res.status(422).json({message: "Request Body is missing 'product' field."});
     if (!req.body.categoryId) return res.status(422).json({message: "Request Body is missing fields: missing 'categoryId'."})
@@ -78,14 +86,14 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
     const product = validateWithSchema(inventoryProductSchema, req.body.product);
     const categoryId = validateWithSchema(categoryIdSchema, req.body.categoryId)
 
-    if (product.code && await getInventoryProductByCode(product.code, user.team.id)) return res.status(403).json( {message: "Product code already registered"});
+    if (product.code && await getInventoryProductByCode(product.code, teamId)) return res.status(403).json( {message: "Product code already registered"});
     
-    const category = await getUniqueInventoryCategory(user.team.id, req.body.categoryId);
+    const category = await getUniqueInventoryCategory(teamId, req.body.categoryId);
     if (!category) return res.status(404).json({message: "category id not found"});
 
-    const newProduct = await createInventoryProduct(product, user.team.id);
+    const newProduct = await createInventoryProduct(product, teamId);
     const categoryProduct = await addProductToCategory({
-        teamId: user.team.id,
+        teamId: teamId,
         productId: newProduct.id,
         categoryId: categoryId,
     });
@@ -101,10 +109,10 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
 
         const category_subcategories = validateWithSchema(categorySubcategoryIdArraySchema, req.body.category_subcategories);
 
-        if (!await getManyCategorySubcategories(user.team.id, category_subcategories)) return res.status(404).json({message: `subcategory id not found in '${category.name}'`});
+        if (!await getManyCategorySubcategories(teamId, category_subcategories)) return res.status(404).json({message: `subcategory id not found in '${category.name}'`});
 
         const datamap = category_subcategories.map((sub: string) => ({
-            teamId: user.team.id,
+            teamId: teamId,
             category_product_id: categoryProduct.id,
             category_subcategory_id: sub 
         }))
