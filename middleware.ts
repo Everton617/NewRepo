@@ -22,8 +22,8 @@ const unAuthenticatedRoutes = [
   '/unlock-account',
   '/login/saml',
   '/.well-known/*',
-  'api/ex_routes/inventory',
-  'api/ex_routes/orders'
+  '/api/ex_routes/inventory',
+  '/api/ex_routes/orders'
 
   
 ];
