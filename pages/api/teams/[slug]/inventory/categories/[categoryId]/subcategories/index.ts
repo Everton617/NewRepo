@@ -1,6 +1,4 @@
 import { validateWithSchema } from '@/lib/zod';
-
-import { postCategorySubcategorySchema } from '@/lib/zod/inventory/category_subcategory.schema';
 import { getUniqueInventoryCategory } from 'models/inventory/categories';
 import { createCategorySubcategory, getAllCategorySubcategories, subcategoryAlreadyInCategory } from 'models/inventory/category_subcategories';
 import { getUniqueInventorySubCategory } from 'models/inventory/subcategories';
@@ -47,11 +45,11 @@ export default async function handler(
 async function handleGET(req: NextApiRequest, res: NextApiResponse) {
     const user = await getCurrentUserWithTeam(req, res);
 
-    const categoryId = validateWithSchema(categoryIdSchema, req.query._categoryId);
-    if (!await getUniqueInventoryCategory(user.team.id, categoryId))
+    const validatedCategoryId = categoryIdSchema.parse(req.query.categoryId);
+    if (!await getUniqueInventoryCategory(user.team.id, validatedCategoryId))
         return res.status(404).json({message: "category id not found"});
 
-    const data = await getAllCategorySubcategories(user.team.id, categoryId);
+    const data = await getAllCategorySubcategories(user.team.id, validatedCategoryId);
     const subcategories = data.map(sub => ({
         id: sub.id,
         category: sub.category,
