@@ -64,6 +64,7 @@ import { useTranslation } from 'next-i18next';
 import toast from "react-hot-toast"
 
 import { LuClipboardSignature } from "react-icons/lu";
+import { PiCirclesThreePlus } from "react-icons/pi";
 
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -803,6 +804,8 @@ export default function Component() {
 
         <div>
 
+          <span>{t('Filtrar por: ')}</span>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -830,6 +833,7 @@ export default function Component() {
         </div>
 
         <div>
+       
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -997,49 +1001,43 @@ export default function Component() {
               </div>
             </div></PopoverContent>
         </Popover>
+        <Popover>
+          <PopoverTrigger> <Button
+            title="Adicionar Categoria"
+            className="bg-red-400 hover:bg-red-500 dark:bg-red-400 dark:text-white dark:hover:bg-white hover:border hover:border-red-400 dark:hover:text-red-400">
+            {t('Criar uma SubCategoria')} <PiCirclesThreePlus  className="ml-2 h-5 w-5" />
+          </Button></PopoverTrigger>
+          <PopoverContent>
+            <div className="flex flex-col gap-2"  >
+              <div>
+                <h1 className="pb-1">{t('Insira uma SubCategoria:')}</h1>
+                <Input
+                  className="max-w-[200px]"
+                  placeholder="Ex: Cerveja"
+                  id="category"
+                  type="text"
+                  onChange={(e) => setInputSubCategoria(e.target.value)} />
+              </div>
+              <div>
+              <Button onClick={(onAddSubCategory)} className="bg-red-400 dark:bg-red-400" variant={"outline"}>{t('Criar')}</Button>
+              </div>
+            </div></PopoverContent>
+        </Popover>
+        
 
         <Popover>
           <PopoverTrigger><CiMenuKebab className="h-6 w-6 text-black dark:text-white" /> </PopoverTrigger>
-          <PopoverContent className="flex flex-col justify-center gap-2 w-[200px]">
+          <PopoverContent className=" mt-5 box-shadow-none border-none bg-transparent flex flex-col justify-center max-h-[5px] w-[220px] ">
+
 
             <Dialog>
               <DialogTrigger
-                title="Criar uma SubCategoria"
-                className="flex justify-center items-center min-w-[100px] min-h-[35px] max-h-[70px] rounded-md text-[13px]">
-                <Button className="bg-red-400 dark:bg-red-400 text-[12px]" variant={"outline"}>{t('Criar uma SubCategoria')}</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-[300px] p-5">
-                <DialogHeader>
-                  <DialogTitle>{t('Deseja Criar uma SubCategoria?')}</DialogTitle>
-                  <DialogDescription>
-                    <div className="flex flex-col gap-2" >
-
-                      <div>
-                        <h1 className="pb-1">{t('Insira uma SubCategoria:')}</h1>
-                        <Input
-                          className="max-w-[200px]"
-                          placeholder="Ex: Refrigerantes"
-                          id="category"
-                          type="text"
-                          onChange={(e) => setInputSubCategoria(e.target.value)} />
-                      </div>
-                      <div>
-                        <Button onClick={(onAddSubCategory)} className="bg-red-400 dark:bg-red-400" variant={"outline"}>{t('Criar')}</Button>
-                      </div>
-                    </div>
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog>
-              <DialogTrigger
-                className=" flex flex-row gap-2 justify-center items-center min-h-[40px] rounded-md">
-                <Button className="bg-red-400 dark:bg-red-400 text-[12px] " variant={"outline"}>{t('Adicionar uma Categoria ')} <br />{t('em uma SubCategoria')}</Button>
+                className=" flex flex-row gap-2 justify-center items-center max-h-[40px] rounded-md">
+                <Button className=" bg-red-400 dark:bg-red-400 text-[13px] text-white font-bold hover:bg-red-500 hover:text-white min-w-[200px] min-h-[55px] " variant={"outline"}>{t('Atribuir uma SubCategoria ')} <br />{t('a uma Categoria')}</Button>
               </DialogTrigger>
               <DialogContent className="max-w-[450px]">
                 <DialogHeader>
-                  <DialogTitle>{t('Deseja Atribuir uma Categoria a uma SubCategoria?')}</DialogTitle>
+                  <DialogTitle>{t('Deseja Atribuir uma SubCategoria a uma Categoria?')}</DialogTitle>
                   <DialogDescription>
                     <h1 className="pb-1">{t('Escolha uma Categoria e uma SubCategoria')}</h1>
                     <div className=" gap-2" >
@@ -1081,7 +1079,7 @@ export default function Component() {
                       <div className="pt-2">
                         <Button
                           onClick={(onAddCategoryOnSubCategory)}
-                          className="bg-red-400 dark:bg-red-400 dark:text-white" variant={"outline"}>{t('Adicionar')}</Button>
+                          className="bg-red-400 dark:bg-red-400 dark:text-white text-white  hover:text-red-400 hover:border-2 hover:border-red-400" variant={"outline"}>{t('Adicionar')}</Button>
                       </div>
                     </div>
                   </DialogDescription>

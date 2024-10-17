@@ -1,13 +1,14 @@
 import { 
     Cog6ToothIcon, BuildingStorefrontIcon ,
-    UsersIcon,ArchiveBoxIcon,ChatBubbleOvalLeftEllipsisIcon
+    UsersIcon,ChatBubbleOvalLeftEllipsisIcon
 } from '@heroicons/react/24/outline';
 import { useTranslation } from 'next-i18next';
 import NavigationItems from './NavigationItems';
 import { NavigationProps, MenuItem } from './NavigationItems';
 import { MdOutlineDashboard } from "react-icons/md";
-import { AiTwotoneSchedule } from "react-icons/ai";
 import { MdOutlineDeliveryDining } from "react-icons/md";
+import { TbBuildingWarehouse } from "react-icons/tb";
+import { LuCalendarSearch } from "react-icons/lu";
 
 interface NavigationItemsProps extends NavigationProps {
   slug: string;
@@ -32,13 +33,13 @@ const TeamNavigation = ({ slug, activePathname }: NavigationItemsProps) => {
     {
       name: t('Estoque'),
       href: `/teams/${slug}/inventory`,
-      icon: ArchiveBoxIcon,
+      icon: TbBuildingWarehouse,
       active: activePathname === `/teams/${slug}/inventory`,
     },
     {
       name: t('Histórico'),
       href: `/teams/${slug}/historic`,
-      icon: AiTwotoneSchedule,
+      icon: LuCalendarSearch ,
       active: activePathname === `/teams/${slug}/historic`,
     },
     {

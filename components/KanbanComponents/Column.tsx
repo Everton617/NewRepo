@@ -557,11 +557,11 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                   <div><h1 className="text-lg font-semibold mb-6">{t('Informações do Pedido')}</h1></div>
                   <div className="">
                     <div className="flex gap-4 pl-7  items-center">
-                      <label className="text-black block pb-2">{t('Escolha um pedido')}</label>
+                      <label className="text-black block pb-2">{t('Escolha um produto')}:</label>
                       <input
                         className="border-gray-300 border-2 rounded-md h-8 min-w-[300px] pl-2"
                         type="text"
-                        placeholder="Pesquisar Pedido"
+                        placeholder="Pesquisar produto"
                         value={searchTerm}
                         onChange={handleSearchChange}
                       />
@@ -608,7 +608,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                     </table>
                     {currentItems.length === 0 && (
                       <div className="flex flex-col justify-center items-center h-[60px]">
-                        <span className="text-center text-sm">{t('Nenhum item encontrado.')}</span>
+                        <span className="text-center text-sm">{t('Nenhum produto encontrado.')}</span>
                         <span className="text-center text-sm">{t('Por favor, insira um produto na página de')} <a className="text-blue-400 underline " href={`/teams/${slug}/inventory`}>{t('Estoque')}</a></span>
                       </div>
                     )}
