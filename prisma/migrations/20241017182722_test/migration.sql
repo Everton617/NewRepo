@@ -87,7 +87,6 @@ CREATE TABLE "Team" (
 CREATE TABLE "TeamContact" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "cep" TEXT,
     "address" TEXT,
     "cidade" TEXT,
     "estado" TEXT,
@@ -134,25 +133,6 @@ CREATE TABLE "ContactLabel" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "ContactLabel_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "InventoryProduct" (
-    "id" TEXT NOT NULL,
-    "teamId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "imageUrl" TEXT,
-    "code" TEXT,
-    "description" TEXT,
-    "purchasePrice" DOUBLE PRECISION,
-    "salePrice" DOUBLE PRECISION NOT NULL,
-    "stockQuant" INTEGER NOT NULL,
-    "unitOfMeasure" TEXT,
-    "supplier" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "InventoryProduct_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -228,17 +208,17 @@ CREATE TABLE "TeamMember" (
 -- CreateTable
 CREATE TABLE "Order" (
     "id" TEXT NOT NULL,
-    "pedido" TEXT[],
-    "quantidade" INTEGER NOT NULL,
     "status" "OrderStatus" NOT NULL DEFAULT 'BACKLOG',
-    "horario" TIMESTAMP(3) NOT NULL,
     "entregador" TEXT NOT NULL,
+    "nome" TEXT NOT NULL,
     "rua" TEXT NOT NULL,
+    "horario" TIMESTAMP(3) NOT NULL,
     "numero" TEXT NOT NULL,
     "complemento" TEXT NOT NULL,
     "cep" TEXT NOT NULL,
     "cidade" TEXT NOT NULL,
     "estado" TEXT NOT NULL,
+    "valor" INTEGER NOT NULL,
     "tel" TEXT NOT NULL,
     "metodo_pag" TEXT NOT NULL,
     "instrucoes" TEXT NOT NULL,
@@ -253,26 +233,32 @@ CREATE TABLE "Order" (
 );
 
 -- CreateTable
-CREATE TABLE "OrderItem" (
+CREATE TABLE "InventoryProduct" (
     "id" TEXT NOT NULL,
-    "itemId" TEXT NOT NULL,
-    "quantidade" INTEGER NOT NULL,
-    "instrucoes" TEXT NOT NULL,
+    "teamId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "imageUrl" TEXT,
+    "code" TEXT,
+    "description" TEXT,
+    "purchasePrice" TEXT,
+    "salePrice" TEXT,
+    "stockQuant" INTEGER NOT NULL,
+    "unitOfMeasure" TEXT,
+    "supplier" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "orderId" TEXT NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "InventoryProduct_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Item" (
+CREATE TABLE "OrderItem" (
     "id" TEXT NOT NULL,
-    "code" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "orderId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "quantidade" INTEGER NOT NULL,
 
-    CONSTRAINT "Item_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -474,9 +460,6 @@ CREATE UNIQUE INDEX "Team_evo_instance_name_key" ON "Team"("evo_instance_name");
 CREATE INDEX "Team_billingId_idx" ON "Team"("billingId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "InventoryProduct_code_key" ON "InventoryProduct"("code");
-
--- CreateIndex
 CREATE UNIQUE INDEX "InventoryCategory_teamId_name_key" ON "InventoryCategory"("teamId", "name");
 
 -- CreateIndex
@@ -498,7 +481,7 @@ CREATE INDEX "TeamMember_userId_idx" ON "TeamMember"("userId");
 CREATE UNIQUE INDEX "TeamMember_teamId_userId_key" ON "TeamMember"("teamId", "userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Item_code_key" ON "Item"("code");
+CREATE UNIQUE INDEX "InventoryProduct_code_key" ON "InventoryProduct"("code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Invitation_token_key" ON "Invitation"("token");
@@ -561,9 +544,6 @@ ALTER TABLE "ContactLabel" ADD CONSTRAINT "ContactLabel_labelId_fkey" FOREIGN KE
 ALTER TABLE "ContactLabel" ADD CONSTRAINT "ContactLabel_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "TeamContact"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "InventoryProduct" ADD CONSTRAINT "InventoryProduct_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "InventoryCategory" ADD CONSTRAINT "InventoryCategory_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -609,10 +589,13 @@ ALTER TABLE "Order" ADD CONSTRAINT "Order_teamId_fkey" FOREIGN KEY ("teamId") RE
 ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "Item"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "InventoryProduct" ADD CONSTRAINT "InventoryProduct_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "InventoryProduct"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Invitation" ADD CONSTRAINT "Invitation_invitedBy_fkey" FOREIGN KEY ("invitedBy") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -634,4 +617,3 @@ ALTER TABLE "historico" ADD CONSTRAINT "historico_teamId_fkey" FOREIGN KEY ("tea
 
 -- AddForeignKey
 ALTER TABLE "jackson_index" ADD CONSTRAINT "jackson_index_storeKey_fkey" FOREIGN KEY ("storeKey") REFERENCES "jackson_store"("key") ON DELETE CASCADE ON UPDATE NO ACTION;
-

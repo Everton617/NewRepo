@@ -25,6 +25,7 @@ import {
 
 
 
+
 import { useRouter } from 'next/router';
 import toast from "react-hot-toast";
 import { Separator } from "../ui/separator";
@@ -132,7 +133,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
       if (Array.isArray(data.inventoryProducts)) {
         setProducts(data.inventoryProducts);
 
-    
+
       } else {
 
         console.error('Expected an array but got:', data);
@@ -179,9 +180,9 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
   };
 
   const onAddItem = async (data: Inputs) => {
-    
+
     const { nome, entregador, numero, complemento, cep, tel, metodo_pag, instrucoes } = data;
-   
+
     const cepFormatado = cep.replace("-", "");
     const validarCep = async (cep) => {
       const url = `https://viacep.com.br/ws/${cep}/json/`;
@@ -211,7 +212,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
     console.log('Container title:', title); // Certifique-se de que 'title' está definido
 
-    
+
     const order = {
       orderItems: produtosResumo,
       nome,
@@ -252,19 +253,19 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
   const handleChangeTitle = async () => {
     if (newTitle !== title) {
-      try{
+      try {
         const response = await fetch(`/api/teams/${slug}/containers`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             containerId: id,
             newName: newTitle,
-           }),
+          }),
         });
 
         const data = await response.json();
         console.log("response ==> ", data);
-      }catch(error){
+      } catch (error) {
         console.log("Error trying to rename Container", error)
         toast.error("Error trying to rename Container")
       }
@@ -325,7 +326,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
       if (productToAdd) {
         setPedidos([...pedidos, { ...productToAdd, quantity: 1 }]);
-        
+
       } else {
         // Tratar o caso em que o produto não é encontrado
         console.error("Produto não encontrado!");
@@ -372,7 +373,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
         ref={setNodeRef}
         className={`${borderColorClass} ${iconColorClass}`}
         style={{
-          minWidth: "450px",
+          minWidth: "430px",
           background: "rgba(245,247,249,1.00)",
           marginRight: "10px",
           borderRadius: "10px"
@@ -459,7 +460,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         placeholder='Insira o nome do destinatário'
                         className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
                         {...register('nome', { required: 'O nome é obrigatório.' })}
-                         // Adiciona o evento onChange para buscar dados do CEP
+                      // Adiciona o evento onChange para buscar dados do CEP
                       />
                       {errors.nome?.message && (
                         <p className='text-sm text-red-400'>{errors.nome.message}</p>
@@ -472,7 +473,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         className='rounded-lg border p-2 bg-white rounded-lg hover:shadow-xl w-60'
                         {...register('cep', { required: 'O CEP é obrigatório.' })}
                         onChange={handleCEPChange}
-                        // Adiciona o evento onChange para buscar dados do CEP
+                      // Adiciona o evento onChange para buscar dados do CEP
                       />
                       {errors.cep?.message && (
                         <p className='text-sm text-red-400'>{errors.cep.message}</p>
@@ -605,6 +606,12 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         ))}
                       </tbody>
                     </table>
+                    {currentItems.length === 0 && (
+                      <div className="flex flex-col justify-center items-center h-[60px]">
+                        <span className="text-center text-sm">{t('Nenhum item encontrado.')}</span>
+                        <span className="text-center text-sm">{t('Por favor, insira um produto na página de')} <a className="text-blue-400 underline " href={`/teams/${slug}/inventory`}>{t('Estoque')}</a></span>
+                      </div>
+                    )}
 
                     <div className="flex justify-center ">
                       <Pagination className="">
@@ -678,7 +685,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
                         <li key={index} className="flex items-center">
                           {pedido.name} {t('- Quantidade:')} {pedido.quantity}
                           <div className=" flex bg-white p-2 rounded-md items-center justify-center ml-2 cursor-pointer text-red-400 hover:bg-red-400 hover:text-white" onClick={() => deletarPedido(pedido.id)}>
-                            <FaTrash  className=" " />
+                            <FaTrash className=" " />
                           </div>
                         </li>
                       ))}
@@ -686,7 +693,7 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
 
                   </div>
                   <span className="flex flex-row font-bold text-right text-lg">
-                   {t('Valor Total:')}<div className="text-gray-600">{valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                    {t('Valor Total:')}<div className="text-gray-600">{valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
                   </span>
 
                 </div>

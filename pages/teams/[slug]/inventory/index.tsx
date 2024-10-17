@@ -535,7 +535,7 @@ export default function Component() {
 
     console.log('id da Categoria', chooseCategory);
     console.log('id da SubCategoria', chooseSubCategory);
-
+    
     if (!chooseCategory || !chooseSubCategory) {
       toast.error('Por favor, selecione uma categoria e uma subcategoria');
       return;
@@ -551,19 +551,22 @@ export default function Component() {
         body: JSON.stringify({ subCategoryId: chooseSubCategory }),
       });
 
+      console.log('enviando',response)
+
       if (!response.ok) {
-        // console.log(response)
+        console.log(await response.json())
         throw new Error('Erro ao adicionar Categoria em Subcategoria');
       }
 
 
       toast.success('Subcategoria atribuida!')
+      setChooseCategory('')
+      setChooseSubCategory('')
     } catch (error) {
       console.error('Erro ao adicionar Categoria em Subcategoria:', error);
     }
 
-    setChooseCategory('')
-    setChooseSubCategory('')
+   
   };
 
   const onSubmit = async (data) => {

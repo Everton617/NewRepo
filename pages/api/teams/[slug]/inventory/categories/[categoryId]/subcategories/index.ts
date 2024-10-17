@@ -1,5 +1,5 @@
 import { validateWithSchema } from '@/lib/zod';
-import { categoryIdSchema } from '@/lib/zod/inventory/category.schema';
+
 import { postCategorySubcategorySchema } from '@/lib/zod/inventory/category_subcategory.schema';
 import { getUniqueInventoryCategory } from 'models/inventory/categories';
 import { createCategorySubcategory, getAllCategorySubcategories, subcategoryAlreadyInCategory } from 'models/inventory/category_subcategories';
@@ -7,6 +7,13 @@ import { getUniqueInventorySubCategory } from 'models/inventory/subcategories';
 import { getCurrentUserWithTeam, throwIfNoTeamAccess } from 'models/team';
 import { throwIfNotAllowed } from 'models/user';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { z } from 'zod';
+
+
+
+// Define um esquema de validação para o ID da categoria
+const categoryIdSchema = z.string().uuid();
+const subCategoryIdSchema = z.string()
 
 export default async function handler(
   req: NextApiRequest,
@@ -59,25 +66,26 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
     const user = await getCurrentUserWithTeam(req, res);
     throwIfNotAllowed(user, "team_inventory_category_subcategory", "create");
 
-    const categoryId = validateWithSchema(categoryIdSchema, req.query._categoryId);
-    const { subCategoryId } = validateWithSchema(postCategorySubcategorySchema, req.body);
+    const validatedCategoryId = categoryIdSchema.parse(req.query.categoryId);
+      const { subCategoryId } = req.body; // Extrair o campo subCategoryId
+      const validatedSubCategoryId = validateWithSchema(subCategoryIdSchema, subCategoryId); 
 
     // check if category id exist
-    const category = await getUniqueInventoryCategory(user.team.id, categoryId);
+    const category = await getUniqueInventoryCategory(user.team.id, validatedCategoryId);
     if (!category) return res.status(404).json({message: "category id not found"});
     
     // check if subcategory id exist
-    const subcategory = await getUniqueInventorySubCategory(user.team.id, subCategoryId);
+    const subcategory = await getUniqueInventorySubCategory(user.team.id, validatedSubCategoryId);
     if (!subcategory) return res.status(404).json({message: "subcategory id not found"});
 
     // check if subcategory is already registered in that category
-    if (await subcategoryAlreadyInCategory({teamId: user.team.id, categoryId, subCategoryId})) 
+    if (await subcategoryAlreadyInCategory({teamId: user.team.id, categoryId:validatedCategoryId, subCategoryId:validatedSubCategoryId})) 
         return res.status(403).json({message: `subcategory is already registered in ${category.name}`})
 
     const category_subcategory = await createCategorySubcategory({
         teamId: user.team.id,
-        categoryId,
-        subCategoryId
+        categoryId:validatedCategoryId,
+        subCategoryId:validatedSubCategoryId
     });
 
     return res.status(201).json({

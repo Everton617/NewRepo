@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import { createOrderSchema, validateWithSchema } from "@/lib/zod";
 import { ApiError } from "@/lib/errors";
-import { IOrder, createOrder } from "models/order";
+import { IOrder, createOrder,updateOrderStatus } from "models/order";
 import { getApiKey } from "models/apiKey";
 
 export default async function handler(
@@ -29,6 +29,9 @@ export default async function handler(
         }
         await handlePOST(req, res, apiKey);
         break;
+        case "PATCH":
+          await handlePATCH(req, res);
+          break;
       default:
         res.setHeader("Allow", "GET, POST, DELETE, PATCH");
         res.status(405).end(`Method ${req.method} Not Allowed`);
@@ -136,3 +139,22 @@ async function handlePOST(
       // ... (Manipulação de erros) 
     }
   } 
+
+  async function handlePATCH(req: NextApiRequest, res: NextApiResponse) {
+    if (!req.body.orderId || !req.body.newStatus) {
+        throw new ApiError(400, "Order ID and new status must be provided");
+    }
+
+    const { orderId, newStatus } = req.body;
+
+    // Optionally, you could validate the newStatus to ensure it's a valid status.  
+
+    // Update the order status in the database  
+    try {
+        await updateOrderStatus(orderId, newStatus);
+        return res.json({ message: "Order status updated successfully" });
+    } catch (error) {
+        console.error('Failed to update order status:', error);
+        throw new ApiError(500, "Failed to update order status");
+    }
+}
