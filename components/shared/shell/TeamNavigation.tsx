@@ -1,5 +1,5 @@
 import { 
-    Cog6ToothIcon, BuildingStorefrontIcon ,
+    Cog6ToothIcon ,
     UsersIcon,ChatBubbleOvalLeftEllipsisIcon
 } from '@heroicons/react/24/outline';
 import { useTranslation } from 'next-i18next';
@@ -9,6 +9,8 @@ import { MdOutlineDashboard } from "react-icons/md";
 import { MdOutlineDeliveryDining } from "react-icons/md";
 import { TbBuildingWarehouse } from "react-icons/tb";
 import { LuCalendarSearch } from "react-icons/lu";
+import { LiaChalkboardTeacherSolid } from "react-icons/lia";
+
 
 interface NavigationItemsProps extends NavigationProps {
   slug: string;
@@ -27,7 +29,7 @@ const TeamNavigation = ({ slug, activePathname }: NavigationItemsProps) => {
     {
       name: t('Gestor de Pedidos'),
       href: `/teams/${slug}/kanban`,
-      icon: BuildingStorefrontIcon,
+      icon: LiaChalkboardTeacherSolid ,
       active: activePathname === `/teams/${slug}/kanban`,
     },
     {
