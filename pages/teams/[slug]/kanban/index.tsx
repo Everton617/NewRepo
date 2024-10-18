@@ -26,10 +26,10 @@ const containerColors = [
 ];
 
 const iconColors = [
-  'text-red-400 hover:text-red-900',
-  'text-sky-500 hover:text-sky-900',
-  'text-teal-400 hover:text-teal-900',
-  'text-yellow-400 hover:text-yellow-900',
+  'text-white hover:text-red-900',
+  'text-white hover:text-sky-900',
+  'text-white hover:text-teal-900',
+  'text-white hover:text-yellow-900',
 ];
 const buttonColors = [
   'bg-red-400 hover:bg-red-500',

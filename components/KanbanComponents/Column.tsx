@@ -3,10 +3,8 @@ import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import Card, { CardType } from "./Card";
 import clsx from 'clsx';
-import { PencilIcon, PlusIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
+import {  PlusIcon } from "lucide-react";
 import { useTranslation } from 'next-i18next';
-import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -59,10 +57,9 @@ interface pedido extends products { }
 
 
 
-const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClass, iconColorClass, buttonColorClass }) => {
+const Column: FC<ColumnType> = ({ id, title, items, borderColorClass, iconColorClass, buttonColorClass }) => {
   const { setNodeRef } = useDroppable({ id: id });
   const { t } = useTranslation('common');
-  const [newTitle, setNewTitle] = useState(title);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [products, setProducts] = useState<products[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -251,28 +248,6 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
   };
 
 
-  const handleChangeTitle = async () => {
-    if (newTitle !== title) {
-      try {
-        const response = await fetch(`/api/teams/${slug}/containers`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            containerId: id,
-            newName: newTitle,
-          }),
-        });
-
-        const data = await response.json();
-        console.log("response ==> ", data);
-      } catch (error) {
-        console.log("Error trying to rename Container", error)
-        toast.error("Error trying to rename Container")
-      }
-      onClickEdit();
-    }
-  };
-
 
 
 
@@ -379,45 +354,25 @@ const Column: FC<ColumnType> = ({ id, title, items, onClickEdit, borderColorClas
           borderRadius: "10px"
         }}
       >
-        <div className="flex justify-between items-center">
-          <PlusIcon className={clsx('w-5 h-5 cursor-pointer', iconColorClass)} onClick={showItemModal} />
-          <p
-            style={{
-              padding: "5px 20px",
-              textAlign: "left",
-              fontWeight: "500",
-              color: "#575757",
-            }}
-          >
-            {title}
-          </p>
-          <Popover>
-            <PopoverTrigger><PencilIcon className={clsx('w-5 h-5', iconColorClass)} /></PopoverTrigger>
-            <PopoverContent>
-              <div className={`flex flex-col bg-gray-100 text-white w-[220px] p-4 gap-4 rounded-md ${borderColorClass}`}>
-                <div>
-                  <h2 className="text-black">
-                    {t('Deseja Alterar este título?')} &quot;{title}&quot;
-                  </h2>
-                </div>
-                <div className="flex gap-4 flex-col">
-                  <Input
-                    id={id}
-                    placeholder="Digite um nome"
-                    className="col-span-2 h-6 w-[180px] text-black"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                  />
-                  <Button
-                    className={`w-[80px] hover:bg-red-500 ${buttonColorClass}`}
-                    onClick={handleChangeTitle}
-                  >
-                    {t('Alterar')}
-                  </Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+        <div className="flex justify-center items-center w-[400px]">
+          
+          <div className="flex items-center gap-2 justify-center ">
+            <p
+              style={{
+                padding: "5px 20px",
+                textAlign: "left",
+                fontWeight: "500",
+                color: "#575757",
+              }}
+            >
+              {title}
+            </p>
+            <div title="Adicionar Pedido" className={clsx('rounded-md  cursor-pointer', buttonColorClass)} >
+            <PlusIcon className={clsx('w-5 h-5 cursor-pointer', iconColorClass)} onClick={showItemModal} />
+            
+          </div>
+          </div>
+          
         </div>
         {order.map((card, index) => (
           <Card
